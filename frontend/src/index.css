@@ -1,0 +1,70 @@
+/* src/index.css */
+/* GLOBAL FOUNDATION — layout & tokens only */
+
+:root {
+  /* Brand palette */
+  --primary-color: #540863;
+  --accent-color: #92487A;
+
+  /* Neutrals */
+  --background-light: #f8fafc;
+  --text-dark: #111827;
+  --text-muted: #6b7280;
+  --border-color: rgba(0, 0, 0, 0.08);
+
+  /* Design tokens */
+  --card-radius: 10px;
+  --transition-speed: 0.2s;
+
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Reset & box model */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Viewport ownership */
+html,
+body,
+#root {
+  min-height: 100dvh;
+  width: 100%;
+}
+
+/* Body base */
+body {
+  margin: 0;
+  background: var(--background-light);
+  color: var(--text-dark);
+
+  /* Responsive base font */
+  font-size: clamp(14px, 1.2vw, 16px);
+
+  line-height: 1.5;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  overflow-x: hidden; /* kill horizontal scroll bugs */
+  overflow-y: hidden; /* desktop default */
+}
+
+/* Enable scrolling on tablet & mobile */
+@media (max-width: 1024px) {
+  body {
+    overflow-y: auto;
+  }
+}
+
+/* Small global utilities */
+.mt-1-5 {
+  margin-top: 1.5rem;
+}
+
+.mb-1-5 {
+  margin-bottom: 1.5rem;
+}

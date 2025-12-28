@@ -1,0 +1,129 @@
+/* CLIENTS PAGE – Luxury Salon CRM */
+
+
+/* Header */
+.clients-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: #222;
+}
+
+.page-subtitle {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+/* Search */
+.client-search {
+  width: 100%;
+  margin-top: 14px;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+}
+
+.client-search:focus {
+  outline: none;
+  border-color: #d63384;
+  box-shadow: 0 0 0 2px rgba(214, 51, 132, 0.15);
+}
+
+/* Buttons */
+.add-client-btn,.save-client-btn {
+  background: linear-gradient(135deg, #7b2c61, #d63384);
+  color: #fff;
+  border: none;
+  border-radius: 22px;
+  padding: 8px 18px;
+  font-weight: 600;
+}
+
+
+/* Cards */
+.lux-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+/* Grid */
+.clients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* Client Card */
+.client-card {
+  position: relative;
+}
+
+.client-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.client-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7b2c61, #d63384);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* Text */
+.client-name {
+  font-weight: 600;
+}
+
+.client-phone {
+  font-size: 0.8rem;
+  color: #777;
+}
+
+/* Open */
+.open-client {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: #d63384;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Delete */
+.delete-client-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+.delete-client-btn:hover {
+  opacity: 1;
+  color: #c0392b;
+}
+
+
+.client-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}

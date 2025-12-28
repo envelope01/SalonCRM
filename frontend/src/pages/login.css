@@ -1,0 +1,131 @@
+/* src/pages/login.css */
+/* Nutan's Beauty Lounge — Login */
+
+.login-page {
+  min-height: 84vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    #f8e8f0,
+    #fdf6f9
+  );
+  font-family: "Inter", system-ui, sans-serif;
+  border-bottom-left-radius: 100px;
+  border-top-right-radius: 100px;
+  /* border-top-left-radius: 50px; */
+
+}
+
+/* Main container */
+.login-wrapper {
+  width: 100%;
+  max-width: 920px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  background: #ffffff;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
+}
+
+/* LEFT — Branding */
+.login-brand {
+  padding: 48px;
+  background: linear-gradient(
+    160deg,
+    #7b2c61,
+    #d63384
+  );
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-brand h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #FFFFFF
+}
+
+.login-brand span {
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.login-brand p {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+/* RIGHT — Form */
+.login-form {
+  padding: 48px 42px;
+}
+
+.login-form h5 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #7b2c61;
+  margin-bottom: 6px;
+}
+
+.login-form .subtitle {
+  font-size: 0.85rem;
+  color: #777;
+  margin-bottom: 22px;
+}
+
+/* Inputs */
+.login-form .form-control {
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 0 14px;
+  font-size: 0.95rem;
+}
+
+.login-form .form-control:focus {
+  border-color: #d63384;
+  box-shadow: 0 0 0 2px rgba(214, 51, 132, 0.18);
+}
+
+/* Button */
+.login-form .btn {
+  height: 46px;
+  border-radius: 10px;
+  font-weight: 600;
+  background: linear-gradient(
+    135deg,
+    #7b2c61,
+    #d63384
+  );
+  border: none;
+}
+
+.login-form .btn:hover {
+  opacity: 0.95;
+}
+
+/* Error */
+.login-form .alert {
+  border-radius: 10px;
+  font-size: 0.85rem;
+  padding: 10px 12px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .login-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .login-brand {
+    display: none;
+  }
+}
