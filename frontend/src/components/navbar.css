@@ -1,105 +1,123 @@
-/* src/components/navbar.css */
-/* Navbar-specific styles ONLY */
-
-/* Glassmorphism navbar */
+/* =========================================================
+   GLASSMORPHISM NAVBAR
+   ========================================================= */
 .custom-navbar {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
-  height: 70px;
-  z-index: 1000;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  z-index: 1050;
+  min-height: 60px;
 }
 
-/* Brand text (centered logo) */
+
+/* =========================================================
+   BRAND STYLING
+   ========================================================= */
 .brand-text {
-  font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  /* font-family: 'Playfair Display', serif; */
-  font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: 2px;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
   color: #333 !important;
-  text-transform: uppercase;
   text-decoration: none;
+  transition: all 0.3s ease;
 }
 
 .brand-highlight {
   color: #d63384;
 }
 
-/* Navigation links */
+
+/* =========================================================
+   DESKTOP: CENTER BRAND
+   ========================================================= */
+@media (min-width: 992px) {
+  .brand-text {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.4rem;
+  }
+
+  .custom-navbar {
+    height: 70px;
+  }
+}
+
+
+/* =========================================================
+   NAV LINKS
+   ========================================================= */
 .custom-link {
   font-weight: 500;
-  color: #555 !important;
-  transition: all 0.3s ease;
+  color: #666 !important;
   position: relative;
-  padding-bottom: 4px;
+  padding: 0.5rem 1rem !important;
+  margin: 0 5px;
 }
 
-.custom-link:hover {
-  color: #000 !important;
-  transform: translateY(-1px);
+.active-link {
+  color: #d63384 !important;
+  font-weight: 700;
 }
 
-/* Underline animation */
-.custom-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 0;
-  height: 2px;
-  background-color: #d63384;
-  transition: width 0.3s ease;
+
+/* =========================================================
+   DESKTOP LINK UNDERLINE EFFECT
+   ========================================================= */
+@media (min-width: 992px) {
+  .custom-link::after {
+    content: "";
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #d63384;
+    transform: translateX(-50%);
+    transition: all 0.3s ease;
+  }
+
+  .custom-link:hover::after,
+  .active-link::after {
+    width: 70%;
+  }
 }
 
-.custom-link:hover::after {
-  width: 100%;
-}
 
-/* User greeting */
-.user-greeting {
-  font-size: 0.9rem;
-  color: #555;
-}
-
-/* Logout button */
+/* =========================================================
+   USER ACTIONS (LOGOUT + GREETING)
+   ========================================================= */
 .btn-logout {
+  background: #fff;
   border: 1px solid #ddd;
-  border-radius: 20px;
-  padding: 5px 15px;
+  border-radius: 8px;
+  padding: 6px 16px;
   font-size: 0.85rem;
-  transition: all 0.2s ease;
-  background: transparent;
+  color: #444;
 }
 
 .btn-logout:hover {
-  background-color: #333;
-  color: #fff;
+  background-color: #f8f9fa;
+  border-color: #d63384;
+  color: #d63384;
 }
 
-/* Login button */
-.btn-login {
-  border-radius: 20px;
-  padding: 5px 15px;
-  font-size: 0.85rem;
-  border: 1px solid #ddd;
-  color: #333;
-  transition: all 0.2s ease;
+.user-greeting {
+  font-size: 0.9rem;
+  color: #777;
 }
 
-.btn-login:hover {
-  background-color: #333;
-  color: #fff;
-}
 
-/* ACTIVE NAV LINK */
-.active-link {
-  color: #000 !important;
-  font-weight: 600;
-}
-
-/* Keep underline visible for active page */
-.active-link::after {
-  width: 100%;
+/* =========================================================
+   MOBILE NAV DROPDOWN
+   ========================================================= */
+@media (max-width: 991px) {
+  .navbar-collapse {
+    background: #fff;
+    padding: 1rem;
+    margin-top: 10px;
+    border-top: 1px solid #eee;
+  }
 }

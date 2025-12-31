@@ -1,56 +1,113 @@
-/* === MAIN LAYOUT === */
+/* =========================================================
+   GLOBAL / ROOT LAYOUT
+   ========================================================= */
 .reports-container {
-  height: calc(100vh - 90px);
   display: flex;
-  padding-bottom: 10px;
   flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 12px;
   box-sizing: border-box;
   font-family: 'Inter', system-ui, sans-serif;
   background: #f7f7f9;
-  overflow: hidden;
+  overflow: auto;
 }
 
-/* === HEADER === */
+/* =========================================================
+   HEADER SECTION
+   ========================================================= */
+.top-row {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+
 .page-header {
   flex-shrink: 0;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.header-title h2 { margin: 0; color: #333; font-size: 1.8rem; font-weight: 800; }
-.header-title p { margin: 4px 0 0 0; color: #888; font-size: 0.9rem; }
+.header-title h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #333;
+}
 
-/* Date Filters */
+.header-title p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+/* ---------- Date Controls ---------- */
 .controls-wrapper {
   display: flex;
-  gap: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 12px;
   background: #fff;
-  padding: 8px 15px;
-  border-radius: 12px;
   border: 1px solid #eee;
+  border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.02);
 }
 
 .preset-btn {
-  background: transparent; border: none; font-weight: 600; color: #666; cursor: pointer;
-  padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.preset-btn:hover { background: #f5f5f5; }
-.preset-btn.active { background: #fce4ec; color: #d63384; }
 
-.date-range { display: flex; align-items: center; gap: 8px; border-left: 1px solid #eee; padding-left: 15px; }
-.date-input { border: 1px solid #ddd; padding: 5px; border-radius: 6px; font-size: 0.85rem; }
-.go-btn { background: #333; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+.preset-btn:hover {
+  background: #f5f5f5;
+}
 
+.preset-btn.active {
+  background: #fce4ec;
+  color: #d63384;
+}
 
-/* === KPI CARDS (Big Numbers) === */
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 15px;
+  border-left: 1px solid #eee;
+}
+
+.date-input {
+  padding: 5px;
+  font-size: 0.85rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.go-btn {
+  padding: 6px 12px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* =========================================================
+   KPI CARDS
+   ========================================================= */
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-bottom: 24px;
+  grid-template-columns: 1fr;
+  gap: 25px;
+  margin-bottom: 16px;
   flex-shrink: 0;
 }
 
@@ -58,170 +115,152 @@
   background: #fff;
   padding: 20px;
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
   border: 1px solid #f0f0f0;
-  display: flex; flex-direction: column;
-}
-.kpi-card.green { border-bottom: 4px solid #198754; }
-.kpi-card.red { border-bottom: 4px solid #dc3545; }
-.kpi-card.blue { border-bottom: 4px solid #0d6efd; }
-
-.kpi-title { font-size: 0.85rem; color: #888; font-weight: 600; text-transform: uppercase; }
-.kpi-value { font-size: 2rem; font-weight: 800; color: #333; margin-top: 5px; }
-
-
-/* === CONTENT GRID === */
-.content-grid {
-  display: flex;
-  gap: 24px;
-  flex-grow: 1;
-  min-height: 0; /* Important for scroll */
-}
-
-/* LEFT SIDE: Charts & History */
-.left-panel {
-  flex: 2;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow-y: auto; /* Internal Scroll */
-  padding-right: 5px;
 }
-.left-panel::-webkit-scrollbar { width: 6px; }
-.left-panel::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
 
+.kpi-card.green { border-bottom: 4px solid #198754; }
+.kpi-card.red   { border-bottom: 4px solid #dc3545; }
+.kpi-card.blue  { border-bottom: 4px solid #0d6efd; }
 
-/* Chart Container */
-.chart-container {
+.kpi-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.kpi-value {
+  margin-top: 5px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #333;
+}
+
+/* =========================================================
+   CONTENT GRID (MAIN BODY)
+   ========================================================= */
+.content-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+/* =========================================================
+   LEFT PANEL
+   ========================================================= */
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.left-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.left-panel::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 10px;
+}
+
+/* ---------- Left Row (Chart + Optional Cards) ---------- */
+.left-row {
+  display: flex;
+  gap: 2px;
+}
+
+/* =========================================================
+   FLIP CHART CARD
+   ========================================================= */
+.flip-card {
+  flex: 1.4;
+  perspective: 1200px;
+}
+
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+}
+
+.flip-card.flipped .flip-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-front,
+.flip-back {
+  position: absolute;
+  inset: 0;
+  padding: 16px;
   background: #fff;
-  padding: 20px;
-  border-radius: 16px;
   border: 1px solid #f0f0f0;
-  min-height: 300px;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
 }
-.section-title { margin: 0 0 15px 0; color: #444; font-size: 1rem; }
 
+.flip-back {
+  transform: rotateY(180deg);
+}
 
-/* Expense List */
+/* ---------- Flip Button ---------- */
+.flip-icon-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  background: #f1f1f1;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+.flip-icon-btn:hover {
+  background: #d63384;
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* =========================================================
+   CHART STYLES
+   ========================================================= */
+.section-title {
+  margin: 0 0 15px;
+  font-size: 1rem;
+  color: #444;
+}
+
+.chart-plot {
+  width: 100%;
+  height: clamp(180px, 28vh, 300px);
+  flex: 1;
+}
+
+/* =========================================================
+   EXPENSE LIST
+   ========================================================= */
 .expense-list-card {
   background: #fff;
   border-radius: 16px;
   border: 1px solid #f0f0f0;
-  overflow: hidden;
-}
-.list-header { padding: 15px 20px; background: #fafafa; border-bottom: 1px solid #eee; font-weight: 700; color: #555; }
-
-.simple-table { width: 100%; border-collapse: collapse; }
-.simple-table td { padding: 12px 20px; border-bottom: 1px solid #f5f5f5; font-size: 0.9rem; color: #333; }
-.simple-table tr:last-child td { border-bottom: none; }
-.amount-red { color: #dc3545; font-weight: 700; text-align: right; }
-
-
-/* RIGHT SIDE: Add Form */
-/* RIGHT SIDE: Add Form + Chart */
-.right-panel {
-  flex: 1;
-  background: #fff;
-  border-radius: 16px;
-  border: 1px solid #f0f0f0;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow-y: auto;
-  scrollbar-width: thin;
 }
 
-.right-panel::-webkit-scrollbar { width: 6px; }
-.right-panel::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
-
-
-
-/* NEW: Header Container for Title + Date */
-.add-expense-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px dashed #eee;
-}
-
-.add-expense-header h4 {
-  margin: 0;
-  color: #333;
-  font-size: 1.1rem;
-}
-
-/* Compact Date Picker for Header */
-.header-date-input {
-  border: 1px solid #ddd;
-  background: #f9f9f9;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 0.85rem;
-  color: #555;
-  outline: none;
-  cursor: pointer;
-}
-.header-date-input:focus { border-color: #d63384; background: #fff; }
-
-.form-group { margin-bottom: 15px; }
-.form-label { display: block; font-size: 0.85rem; font-weight: 600; color: #666; margin-bottom: 6px; }
-
-.modern-input, .modern-select {
-  width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px;
-  font-size: 0.95rem; background: #f9f9f9; box-sizing: border-box;
-}
-.modern-input:focus { background: #fff; border-color: #d63384; outline: none; }
-
-.save-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #d63384, #9d2561);
-  color: #fff;
-  font-size: 1rem; font-weight: 700;
-  padding: 14px;
-  border: none; border-radius: 12px;
-  cursor: pointer; margin-top: 10px;
-  box-shadow: 0 4px 10px rgba(214, 51, 132, 0.3);
-  transition: transform 0.1s;
-}
-.save-btn:hover { transform: translateY(-2px); }
-.save-btn:disabled { background: #ccc; cursor: not-allowed; }
-
-.doughnut-wrapper {
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 1px dashed #eee;
-  
-  /* FIX: Give it a minimum height so it doesn't get squashed, 
-     but allow it to be seen by scrolling */
-  min-height: 180px; 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.doughnut-title {
-    font-size: 0.85rem;
-    color: #888;
-    font-weight: 600;
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-
-
-
-
-
-
-
-/* ... keep all existing CSS ... */
-
-/* "View All" Link in Table Header */
 .table-header {
   display: flex;
   justify-content: space-between;
@@ -230,100 +269,329 @@
   background: #fafafa;
   border-bottom: 1px solid #eee;
 }
+
 .view-history-btn {
   background: none;
   border: none;
-  color: #d63384;
-  font-weight: 600;
   font-size: 0.85rem;
+  font-weight: 600;
+  color: #d63384;
   cursor: pointer;
   text-decoration: underline;
 }
-.view-history-btn:hover { color: #bf2d76; }
 
-
-/* === MODAL OVERLAY === */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
-  backdrop-filter: blur(2px); /* Nice blur effect */
+.view-history-btn:hover {
+  color: #bf2d76;
 }
 
+.simple-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.simple-table td {
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  color: #333;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.simple-table tr:last-child td {
+  border-bottom: none;
+}
+
+.amount-red {
+  text-align: right;
+  font-weight: 700;
+  color: #dc3545;
+}
+
+/* =========================================================
+   RIGHT PANEL (ADD EXPENSE)
+   ========================================================= */
+.right-panel {
+  background: #fff;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  max-width: 474px;
+}
+
+.add-expense-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  border-bottom: 1px dashed #eee;
+}
+
+.header-date-input {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.form-group { margin-bottom: 15px; }
+
+.form-label {
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  display: block;
+}
+
+.modern-input,
+.modern-select {
+  width: 100%;
+  padding: 12px;
+  font-size: 0.95rem;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+.save-btn {
+  margin-top: 10px;
+  padding: 14px;
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #d63384, #9d2561);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+/* ============================
+   MODAL OVERLAY
+   ============================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+
+  display: grid;
+  place-items: center;   /* TRUE center */
+
+  padding: 16px;
+  backdrop-filter: blur(3px);
+}
+
+
+
+/* ============================
+   MODAL CONTAINER
+   ============================ */
 .modal-content {
   background: #fff;
   width: 100%;
-  max-width: 700px;
-  
-  /* FIX: Fixed height relative to screen */
-  height: 80vh; 
-  max-height: 800px;
+  max-width: 565px;        /* ⬅️ smaller, cleaner */
+  height: auto;            /* ⬅️ content-driven */
+  max-height: 70vh;        /* ⬅️ prevents oversized modal */
 
   border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  
-  /* Flexbox forces the header to stay top and body to fill rest */
-  display: flex; 
+  display: flex;
   flex-direction: column;
   overflow: hidden;
-  
-  animation: fadeIn 0.2s ease-out;
+
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+  animation: modalFadeIn 0.2s ease-out;
 }
 
+
+
+
+/* ============================
+   MODAL HEADER
+   ============================ */
 .modal-header {
-  padding: 20px 24px;
+  padding: 18px 22px;
   border-bottom: 1px solid #eee;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #fff;
-  flex-shrink: 0; /* Prevents header from shrinking */
+  flex-shrink: 0;
 }
 
-.modal-header h3 { margin: 0; color: #333; font-size: 1.2rem; }
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #333;
+}
 
 .close-modal-btn {
-  background: #f5f5f5; border: none; width: 32px; height: 32px;
-  border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #555;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: #f5f5f5;
+  color: #555;
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
-.close-modal-btn:hover { background: #fee2e2; color: #dc3545; transform: rotate(90deg); }
 
-/* === SCROLLABLE BODY === */
+.close-modal-btn:hover {
+  background: #ffe4e6;
+  color: #dc3545;
+  transform: rotate(90deg);
+}
+
+
+/* ============================
+   MODAL BODY (SCROLLABLE)
+   ============================ */
 .modal-body {
-  padding: 0; /* Remove padding so scrollbar hugs the edge */
-  flex-grow: 1; /* Takes all available remaining height */
-  overflow-y: auto; /* Enables Internal Scroll */
+  flex-grow: 1;
+  overflow-y: auto;
+  background: #fafafa;
 }
 
-/* Custom Scrollbar for Modal */
-.modal-body::-webkit-scrollbar { width: 8px; }
-.modal-body::-webkit-scrollbar-track { background: #f9f9f9; }
-.modal-body::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
-.modal-body::-webkit-scrollbar-thumb:hover { background: #d63384; }
 
-/* Sticky Header inside Modal Table */
+/* Modal scroll area – same scrollbar style as tables */
+.modal-body::-webkit-scrollbar {
+  width: 7px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #e2b6d0;
+  border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #d49dbd;
+}
+
+
+/* ============================
+   TABLE INSIDE MODAL
+   ============================ */
+.modal-body .simple-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
 .modal-body thead th {
   position: sticky;
   top: 0;
-  background: #fff; /* Must be opaque to hide scrolling text behind it */
+  background: #ffffff;
   z-index: 10;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Shadow to separate header */
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #888;
+  padding: 14px 22px;
+  border-bottom: 1px solid #eee;
 }
 
-/* Fix table padding inside modal */
-.modal-body .simple-table th,
-.modal-body .simple-table td {
-  padding: 15px 24px; /* More breathing room */
+.modal-body tbody td {
+  padding: 14px 22px;
+  font-size: 0.9rem;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
 }
 
+.modal-body tbody tr:hover {
+  background: #fdf2f8;
+}
+
+.modal-body .amount-red {
+  text-align: right;
+  font-weight: 700;
+  color: #dc3545;
+}
+
+
+/* ============================
+   LOADING STATE
+   ============================ */
+.modal-loading {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+
+/* ============================
+   ANIMATION
+   ============================ */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================= */
+@media (min-width: 769px) {
+  .page-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .kpi-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .reports-container {
+    height: calc(100vh - 90px);
+    overflow: hidden;
+  }
+
+  .content-grid {
+    flex-direction: row;
+    gap: 24px;
+  }
+
+  .left-panel {
+    display: flex;
+    flex: 2;
+    overflow-y: auto;
+  }
+
+  .right-panel {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }

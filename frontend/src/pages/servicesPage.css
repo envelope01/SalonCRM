@@ -1,50 +1,55 @@
-/* === MAIN CONTAINER (App Layout) === */
-/* === MAIN CONTAINER === */
+/* =========================================================
+   MAIN CONTAINER (APP LAYOUT)
+   ========================================================= */
 .services-container {
-  /* FIX: Subtract approx 70px-80px for the Navbar so it fits perfectly */
-  height: calc(100vh - 90px); 
-  
   display: flex;
   flex-direction: column;
-  /* padding: 20px 30px; */
+  min-height: 100vh;
+  padding-bottom: 24px;
   box-sizing: border-box;
   font-family: 'Inter', system-ui, sans-serif;
   background: #f7f7f9;
-  
-  /* This ensures the outer page NEVER scrolls */
-  overflow: hidden; 
+  overflow: auto; /* allow page scroll on mobile */
 }
 
-/* === HEADER SECTION === */
+/* =========================================================
+   HEADER SECTION
+   ========================================================= */
 .page-header {
-  flex-shrink: 0; /* Header stays fixed size */
-  margin-bottom: 20px;
+  flex-shrink: 0;
+  margin-bottom: 16px;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .header-left .page-title {
   margin: 0;
-  color: #333;
-  font-weight: 800;
   font-size: 1.8rem;
+  font-weight: 800;
+  color: #333;
   letter-spacing: -0.5px;
 }
+
 .header-left .page-subtitle {
-  color: #888;
   margin-top: 4px;
   font-size: 0.9rem;
+  color: #888;
 }
 
-/* === CREATIVE STATS WIDGET === */
+/* =========================================================
+   STATS WIDGET
+   ========================================================= */
 .header-stats {
   display: flex;
-  background: #fff;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
   padding: 6px;
+  background: #fff;
   border-radius: 50px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
   border: 1px solid #eee;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
 
 .stat-pill {
@@ -58,68 +63,101 @@
   color: #555;
   transition: background 0.2s;
 }
-/* Separator line between stats */
+
 .stat-pill + .stat-pill {
+  margin-left: -1px;
+  padding-left: 20px;
   border-left: 1px solid #f0f0f0;
   border-radius: 0 40px 40px 0;
-  padding-left: 20px;
-  margin-left: -1px; /* Overlap border */
 }
 
-.stat-pill strong { font-size: 1.1rem; color: #333; margin-left: 4px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot.green { background: #16a34a; box-shadow: 0 0 0 2px #dcfce7; }
-.dot.red { background: #dc2626; box-shadow: 0 0 0 2px #fee2e2; }
+.stat-pill strong {
+  margin-left: 4px;
+  font-size: 1.1rem;
+  color: #333;
+}
 
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
 
-/* === THE SPLIT GRID === */
+.dot.green {
+  background: #16a34a;
+  box-shadow: 0 0 0 2px #dcfce7;
+}
+
+.dot.red {
+  background: #dc2626;
+  box-shadow: 0 0 0 2px #fee2e2;
+}
+
+/* =========================================================
+   MAIN GRID LAYOUT
+   ========================================================= */
 .services-grid {
-  display: grid;
-  grid-template-columns: 2.5fr 1fr; /* List is wider */
-  gap: 24px;
-  flex-grow: 1; /* Take up all remaining space */
-  min-height: 0; /* Critical for scrolling to work */
-  align-items: stretch; /* Forces both cards to be SAME HEIGHT */
-}
-
-/* === LEFT CARD: SCROLLABLE LIST === */
-.services-list-card {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f0f0f0;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Hide overflow */
+  gap: 16px;
+  width: 100%;
 }
 
-/* 1. Search Bar (Fixed at top of card) */
-.table-controls {
-  padding: 15px 20px;
-  border-bottom: 1px solid #f0f0f0;
-  flex-shrink: 0;
+/* Mobile ordering */
+.form-card {
+  order: 1;
+}
+
+.services-list-card {
+  order: 2;
+}
+
+/* =========================================================
+   SERVICES LIST CARD
+   ========================================================= */
+.services-list-card {
+  display: flex;
+  flex-direction: column;
   background: #fff;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  overflow: visible;
+}
+
+/* ---------- Search Bar ---------- */
+.table-controls {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
   z-index: 2;
 }
+
 .search-input {
   width: 100%;
   padding: 12px 15px;
+  font-size: 0.9rem;
+  background: #f9f9f9;
   border: 1px solid #e0e0e0;
   border-radius: 10px;
-  background: #f9f9f9;
-  font-size: 0.9rem;
   transition: all 0.2s;
 }
-.search-input:focus { background: #fff; border-color: #d63384; outline: none; }
 
-/* 2. Scroll Area (Takes remaining space) */
-.table-scroll-area {
-  flex-grow: 1;
-  overflow-y: auto; /* Internal Scroll */
-  /* padding-bottom: 10px; */
+.search-input:focus {
+  background: #fff;
+  border-color: #d63384;
+  outline: none;
 }
 
-/* Custom Scrollbar for Table Area */
+/* ---------- Scroll Area ---------- */
+.table-scroll-area {
+  flex-grow: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* Custom Scrollbar */
 .table-scroll-area::-webkit-scrollbar {
   width: 5px;
 }
@@ -133,40 +171,47 @@
   border-radius: 10px;
 }
 
-/* Added a slightly darker shade for the hover to keep the premium feel */
 .table-scroll-area::-webkit-scrollbar-thumb:hover {
-  background: #d49dbd; 
+  background: #d49dbd;
 }
 
-
-/* === TABLE STYLING === */
-.services-table { width: 100%; border-collapse: collapse; }
+/* =========================================================
+   TABLE STYLES
+   ========================================================= */
+.services-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 100;
+}
 
 .services-table thead th {
-  position: sticky; /* Header stays visible when scrolling */
+  position: sticky;
   top: 0;
-  background: #fff;
   z-index: 10;
-  text-align: left;
   padding: 16px 20px;
-  color: #888;
-  font-weight: 700;
+  background: #fff;
+  text-align: left;
   font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  color: #888;
   border-bottom: 2px solid #f0f0f0;
 }
 
 .services-table td {
   padding: 14px 20px;
-  border-bottom: 1px solid #f5f5f5;
-  color: #333;
-  vertical-align: middle;
   font-size: 0.95rem;
+  color: #333;
+  border-bottom: 1px solid #f5f5f5;
+  vertical-align: middle;
 }
-.services-table tbody tr:hover { background-color: #fafafa; }
 
-/* Chips */
+.services-table tbody tr:hover {
+  background-color: #fafafa;
+}
+
+/* ---------- Category Chips ---------- */
 .category-chip {
   display: inline-block;
   padding: 4px 10px;
@@ -175,72 +220,223 @@
   font-weight: 600;
   text-transform: capitalize;
 }
-.cat-hair { background: #e0f2fe; color: #0284c7; } 
-.cat-skin { background: #fce7f3; color: #db2777; } 
-.cat-default { background: #f3f4f6; color: #4b5563; } 
 
-.price-tag { font-weight: 700; color: #333; }
-
-/* Action Buttons */
-.action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
-.icon-btn {
-  width: 32px; height: 32px;
-  border-radius: 8px; border: none;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: transform 0.1s;
+.cat-hair {
+  background: #e0f2fe;
+  color: #0284c7;
 }
-.icon-btn:hover { transform: scale(1.1); }
-.btn-edit { background: #e0f2fe; color: #0284c7; }
-.btn-toggle { background: #dcfce7; color: #166534; }
-.btn-toggle.off { background: #fee2e2; color: #991b1b; }
 
-/* Inactive Row Logic */
-.inactive-row td { opacity: 0.6; }
-.inactive-row .category-chip { background: #eee; color: #999; }
+.cat-skin {
+  background: #fce7f3;
+  color: #db2777;
+}
 
+.cat-default {
+  background: #f3f4f6;
+  color: #4b5563;
+}
 
-/* === RIGHT CARD: FORM (Same Height) === */
+/* ---------- Price ---------- */
+.price-tag {
+  font-weight: 700;
+  color: #333;
+}
+
+/* ---------- Actions ---------- */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.icon-btn:hover {
+  transform: scale(1.1);
+}
+
+.btn-edit {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.btn-toggle {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.btn-toggle.off {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ---------- Inactive Rows ---------- */
+.inactive-row td {
+  opacity: 0.6;
+}
+
+.inactive-row .category-chip {
+  background: #eee;
+  color: #999;
+}
+
+/* =========================================================
+   FORM CARD
+   ========================================================= */
 .form-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f0f0f0;
-  /* Since grid is 'stretch', this card will stretch. 
-     We use flex to distribute content if needed */
   display: flex;
   flex-direction: column;
+  padding: 18px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
-.form-title { margin: 0 0 20px 0; color: #333; font-size: 1.1rem; }
-
-.vertical-form { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 16px; 
+.form-title {
+  margin: 0 0 20px;
+  font-size: 1.1rem;
+  color: #333;
 }
 
-.form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #666; margin-bottom: 6px; }
+.vertical-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+}
 
 .modern-input {
-  width: 100%; padding: 12px; border: 1px solid #e0e0e0;
-  border-radius: 10px; font-size: 0.95rem; background: #f9fafb;
+  width: 100%;
+  padding: 12px;
+  font-size: 0.95rem;
+  background: #f9fafb;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
 }
-.modern-input:focus { background: #fff; border-color: #d63384; outline: none; }
 
+.modern-input:focus {
+  background: #fff;
+  border-color: #d63384;
+  outline: none;
+}
+
+/* ---------- Buttons ---------- */
 .btn-primary-block {
-  width: 100%; 
-  background: linear-gradient(135deg, #d63384, #9d2561); 
-  color: #fff; border: none;
-  padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer;
+  width: 100%;
   margin-top: 10px;
+  padding: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #d63384, #9d2561);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
   box-shadow: 0 4px 10px rgba(214, 51, 132, 0.2);
   transition: transform 0.1s;
 }
-.btn-primary-block:hover { transform: translateY(-2px); }
+
+.btn-primary-block:hover {
+  transform: translateY(-2px);
+}
 
 .btn-cancel-block {
-  width: 100%; background: transparent; color: #666; border: 1px solid #e0e0e0;
-  padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 8px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  font-weight: 600;
+  color: #666;
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  cursor: pointer;
 }
-.btn-cancel-block:hover { background: #f5f5f5; }
+
+.btn-cancel-block:hover {
+  background: #f5f5f5;
+}
+
+/* =========================================================
+   EDIT MODE HIGHLIGHT
+   ========================================================= */
+.editing-active {
+  border-color: #d63384;
+  box-shadow: 0 0 15px rgba(214, 51, 132, 0.15);
+}
+
+/* =========================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================= */
+@media (min-width: 769px) {
+  .page-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .header-stats {
+    justify-content: flex-end;
+  }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr;
+    gap: 20px;
+  }
+
+  .form-card,
+  .services-list-card {
+    order: 0;
+  }
+
+  .table-scroll-area {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .services-container {
+    height: calc(100vh - 90px);
+    overflow: hidden;
+  }
+
+  .services-grid {
+    grid-template-columns: 2.5fr 1fr;
+    gap: 24px;
+    flex-grow: 1;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .services-list-card {
+    overflow: hidden;
+  }
+
+  .table-scroll-area {
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+
+  .form-card {
+    padding: 24px;
+  }
+}

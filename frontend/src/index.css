@@ -1,10 +1,15 @@
-/* src/index.css */
-/* GLOBAL FOUNDATION — layout & tokens only */
+/* =========================================================
+   GLOBAL FOUNDATION
+   Layout, tokens & resets only
+   ========================================================= */
 
+/* =========================================================
+   DESIGN TOKENS
+   ========================================================= */
 :root {
   /* Brand palette */
   --primary-color: #540863;
-  --accent-color: #92487A;
+  --accent-color: #92487a;
 
   /* Neutrals */
   --background-light: #f8fafc;
@@ -16,18 +21,25 @@
   --card-radius: 10px;
   --transition-speed: 0.2s;
 
-  font-family: 'Inter', system-ui, -apple-system, "Segoe UI",
+  /* Base font stack */
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Reset & box model */
+
+/* =========================================================
+   RESET & BOX MODEL
+   ========================================================= */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* Viewport ownership */
+
+/* =========================================================
+   VIEWPORT OWNERSHIP
+   ========================================================= */
 html,
 body,
 #root {
@@ -35,32 +47,40 @@ body,
   width: 100%;
 }
 
-/* Body base */
+
+/* =========================================================
+   BODY BASE STYLES
+   ========================================================= */
 body {
   margin: 0;
   background: var(--background-light);
   color: var(--text-dark);
 
-  /* Responsive base font */
+  /* Responsive base typography */
   font-size: clamp(14px, 1.2vw, 16px);
-
   line-height: 1.5;
 
+  /* Text rendering */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  overflow-x: hidden; /* kill horizontal scroll bugs */
+  /* Scroll behavior */
+  overflow-x: hidden; /* prevent horizontal scroll bugs */
   overflow-y: hidden; /* desktop default */
 }
 
-/* Enable scrolling on tablet & mobile */
+
+/* Enable vertical scrolling on tablet & mobile */
 @media (max-width: 1024px) {
   body {
     overflow-y: auto;
   }
 }
 
-/* Small global utilities */
+
+/* =========================================================
+   SMALL GLOBAL UTILITIES
+   ========================================================= */
 .mt-1-5 {
   margin-top: 1.5rem;
 }

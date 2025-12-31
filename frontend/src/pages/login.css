@@ -1,131 +1,169 @@
-/* src/pages/login.css */
-/* Nutan's Beauty Lounge — Login */
+/* ======================================================
+   LOGIN PAGE
+   ====================================================== */
 
 .login-page {
-  min-height: 84vh;
+  height: 100vh;
+  width: 100%;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    #f8e8f0,
-    #fdf6f9
-  );
-  font-family: "Inter", system-ui, sans-serif;
-  border-bottom-left-radius: 100px;
-  border-top-right-radius: 100px;
-  /* border-top-left-radius: 50px; */
 
+  padding: 10px;
+  overflow: hidden;
+
+  font-family: "Inter", sans-serif;
+  background: radial-gradient(circle at top left, #fdf6f9, #f8e8f0);
 }
 
-/* Main container */
+/* ======================================================
+   LOGIN WRAPPER
+   ====================================================== */
+
 .login-wrapper {
   width: 100%;
-  max-width: 920px;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  background: #ffffff;
-  border-radius: 22px;
-  overflow: hidden;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
-}
+  max-width: 400px;
+  max-height: 90vh;
 
-/* LEFT — Branding */
-.login-brand {
-  padding: 48px;
-  background: linear-gradient(
-    160deg,
-    #7b2c61,
-    #d63384
-  );
-  color: #fff;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+
+  box-shadow: 0 20px 40px rgba(214, 51, 132, 0.1);
+}
+
+/* ======================================================
+   BRAND SECTION (Mobile-first)
+   ====================================================== */
+
+.login-brand {
+  padding: 20px 15px;
+  text-align: center;
+
+  color: #ffffff;
+  background: linear-gradient(135deg, #7b2c61 0%, #d63384 100%);
 }
 
 .login-brand h2 {
-  font-size: 2.2rem;
+  margin-bottom: 4px;
+
+  font-size: 1.4rem;
   font-weight: 800;
-  margin-bottom: 10px;
-  color: #FFFFFF
+  text-transform: uppercase;
 }
 
-.login-brand span {
-  font-weight: 400;
-  opacity: 0.9;
+.login-brand h2 span {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 300;
 }
 
 .login-brand p {
-  font-size: 0.95rem;
-  opacity: 0.9;
-  line-height: 1.6;
-  max-width: 320px;
+  margin: 0 auto;
+  max-width: 250px;
+
+  font-size: 0.8rem;
+  line-height: 1.4;
+  opacity: 0.85;
 }
 
-/* RIGHT — Form */
+/* ======================================================
+   FORM SECTION (Mobile-first)
+   ====================================================== */
+
 .login-form {
-  padding: 48px 42px;
+  padding: 20px;
+  background: #ffffff;
 }
 
 .login-form h5 {
-  font-size: 1.5rem;
+  margin-bottom: 4px;
+
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #7b2c61;
-  margin-bottom: 6px;
+  text-align: center;
 }
 
-.login-form .subtitle {
+.subtitle {
+  margin-bottom: 15px;
+
   font-size: 0.85rem;
-  color: #777;
-  margin-bottom: 22px;
+  text-align: center;
 }
 
-/* Inputs */
+/* ======================================================
+   INPUTS & LABELS
+   ====================================================== */
+
 .login-form .form-control {
-  height: 46px;
+  height: 45px;
+  margin-bottom: 10px;
+
+  font-size: 0.9rem;
   border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  padding: 0 14px;
-  font-size: 0.95rem;
 }
 
-.login-form .form-control:focus {
-  border-color: #d63384;
-  box-shadow: 0 0 0 2px rgba(214, 51, 132, 0.18);
+.form-label {
+  margin-bottom: 4px;
+  font-size: 0.8rem;
 }
 
-/* Button */
-.login-form .btn {
-  height: 46px;
-  border-radius: 10px;
+/* ======================================================
+   PRIMARY BUTTON
+   ====================================================== */
+
+.login-form .btn-primary {
+  height: 45px;
+  margin-top: 5px;
+
   font-weight: 600;
-  background: linear-gradient(
-    135deg,
-    #7b2c61,
-    #d63384
-  );
-  border: none;
-}
-
-.login-form .btn:hover {
-  opacity: 0.95;
-}
-
-/* Error */
-.login-form .alert {
   border-radius: 10px;
-  font-size: 0.85rem;
-  padding: 10px 12px;
+  border: none;
+
+  background: linear-gradient(135deg, #7b2c61 0%, #d63384 100%);
 }
 
-/* Mobile */
-@media (max-width: 768px) {
+/* ======================================================
+   DESKTOP / LAPTOP LAYOUT
+   ====================================================== */
+
+@media (min-width: 992px) {
   .login-wrapper {
-    grid-template-columns: 1fr;
+    max-width: 900px;
+    max-height: 550px;
+    flex-direction: row;
   }
 
   .login-brand {
-    display: none;
+    width: 45%;
+    padding: 60px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    text-align: left;
+  }
+
+  .login-brand h2 {
+    font-size: 2.2rem;
+  }
+
+  .login-brand p {
+    max-width: 100%;
+    font-size: 1rem;
+  }
+
+  .login-form {
+    width: 55%;
+    padding: 60px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 }

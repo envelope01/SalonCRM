@@ -1,30 +1,46 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+} from "react";
+
 import api from "../api";
 import "./servicesPage.css";
 
+/* ======================================================
+   SERVICES PAGE
+   ====================================================== */
 function ServicesPage() {
+  /* ---------------- STATE ---------------- */
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Form State
+  const formRef = useRef(null);
+
+  /* ---------------- FORM STATE ---------------- */
   const [formData, setFormData] = useState({
     name: "",
     category: "",
     price: "",
   });
+
   const [editingId, setEditingId] = useState(null);
   const [formError, setFormError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   const lowerSearch = searchTerm.toLowerCase();
 
-  // LOAD DATA
+  /* ======================================================
+     DATA LOADING
+     ====================================================== */
   const loadServices = async () => {
     try {
       setLoading(true);
       setError("");
+
       const res = await api.get("/services");
       setServices(res.data);
     } catch (err) {
@@ -39,11 +55,14 @@ function ServicesPage() {
     loadServices();
   }, []);
 
-  // COMPUTED STATS
+  /* ======================================================
+     COMPUTED VALUES
+     ====================================================== */
   const activeCount = useMemo(
     () => services.filter((s) => s.isActive).length,
     [services]
   );
+
   const inactiveCount = useMemo(
     () => services.filter((s) => !s.isActive).length,
     [services]
@@ -57,7 +76,9 @@ function ServicesPage() {
     );
   }, [services, lowerSearch]);
 
-  // HANDLERS
+  /* ======================================================
+     HANDLERS
+     ====================================================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
@@ -69,24 +90,22 @@ function ServicesPage() {
 
     try {
       setIsSaving(true);
-      const payload = { ...formData, price: Number(formData.price) };
+
+      const payload = {
+        ...formData,
+        price: Number(formData.price),
+      };
 
       if (editingId) {
         const res = await api.put(`/services/${editingId}`, payload);
 
-        // update locally
         setServices((prev) =>
           prev.map((s) => (s._id === editingId ? res.data : s))
         );
       } else {
         const res = await api.post("/services", payload);
 
-        // prepend new service locally
-        setServices((prev) =>
-          // prev.map((s) => (s._id === editingId ? { ...s, ...res.data } : s))
-        setServices((prev) => [res.data, ...prev])
-
-        );
+        setServices((prev) => [res.data, ...prev]);
       }
 
       setFormData({ name: "", category: "", price: "" });
@@ -105,6 +124,13 @@ function ServicesPage() {
       category: s.category || "",
       price: String(s.price ?? ""),
     });
+
+    if (formRef.current) {
+      formRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -116,24 +142,27 @@ function ServicesPage() {
   const handleToggle = async (id, currentStatus) => {
     if (
       !window.confirm(
-        currentStatus ? "Deactivate this service?" : "Activate this service?"
+        currentStatus
+          ? "Deactivate this service?"
+          : "Activate this service?"
       )
     ) {
       return;
     }
 
-    // 1️⃣ Optimistic UI update
     setServices((prev) =>
-      prev.map((s) => (s._id === id ? { ...s, isActive: !currentStatus } : s))
+      prev.map((s) =>
+        s._id === id ? { ...s, isActive: !currentStatus } : s
+      )
     );
 
     try {
-      // 2️⃣ API call
       await api.put(`/services/toggle/${id}`);
     } catch (err) {
-      // 3️⃣ Rollback if failed
       setServices((prev) =>
-        prev.map((s) => (s._id === id ? { ...s, isActive: currentStatus } : s))
+        prev.map((s) =>
+          s._id === id ? { ...s, isActive: currentStatus } : s
+        )
       );
       alert("Failed to update service status");
     }
@@ -141,30 +170,37 @@ function ServicesPage() {
 
   const getCategoryClass = (cat) => {
     if (!cat) return "cat-default";
+
     const lower = cat.toLowerCase();
+
     if (lower.includes("hair")) return "cat-hair";
-    if (lower.includes("skin") || lower.includes("facial")) return "cat-skin";
+    if (lower.includes("skin") || lower.includes("facial"))
+      return "cat-skin";
+
     return "cat-default";
   };
 
+  /* ======================================================
+     RENDER
+     ====================================================== */
   return (
     <div className="services-container services-page">
-      {/* HEADER: Title + Stats Widget */}
+      {/* HEADER */}
       <div className="page-header">
         <div className="header-left">
           <h2 className="page-title">Service Menu</h2>
           <p className="page-subtitle">Manage your salon catalog</p>
         </div>
 
-        {/* CREATIVE STATS WIDGET */}
         <div className="header-stats">
           <div className="stat-pill">
-            <div className="dot green"></div>
+            <div className="dot green" />
             <span>Active:</span>
             <strong>{activeCount}</strong>
           </div>
+
           <div className="stat-pill">
-            <div className="dot red"></div>
+            <div className="dot red" />
             <span>Inactive:</span>
             <strong>{inactiveCount}</strong>
           </div>
@@ -172,7 +208,7 @@ function ServicesPage() {
       </div>
 
       <div className="services-grid">
-        {/* LEFT CARD: SCROLLABLE LIST */}
+        {/* LEFT: SERVICES LIST */}
         <div className="services-list-card">
           <div className="table-controls">
             <input
@@ -190,9 +226,14 @@ function ServicesPage() {
                 Loading...
               </div>
             )}
+
             {error && (
               <div
-                style={{ padding: 20, textAlign: "center", color: "#dc3545" }}
+                style={{
+                  padding: 20,
+                  textAlign: "center",
+                  color: "#dc3545",
+                }}
               >
                 {error}
               </div>
@@ -205,9 +246,10 @@ function ServicesPage() {
                     <th style={{ width: "35%" }}>Name</th>
                     <th style={{ width: "25%" }}>Category</th>
                     <th style={{ width: "20%" }}>Price</th>
-                    <th style={{ textAlign: "right" }}>Actions</th>
+                    <th style={{ width: "10%" }}>Actions</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {filteredServices.map((s) => (
                     <tr
@@ -217,6 +259,7 @@ function ServicesPage() {
                       <td>
                         <div style={{ fontWeight: 500 }}>{s.name}</div>
                       </td>
+
                       <td>
                         <span
                           className={`category-chip ${getCategoryClass(
@@ -226,9 +269,11 @@ function ServicesPage() {
                           {s.category || "General"}
                         </span>
                       </td>
+
                       <td>
                         <span className="price-tag">₹{s.price}</span>
                       </td>
+
                       <td>
                         <div className="action-buttons">
                           <button
@@ -238,12 +283,17 @@ function ServicesPage() {
                           >
                             ✎
                           </button>
+
                           <button
                             className={`icon-btn btn-toggle ${
                               !s.isActive ? "off" : ""
                             }`}
-                            onClick={() => handleToggle(s._id, s.isActive)}
-                            title={s.isActive ? "Deactivate" : "Activate"}
+                            onClick={() =>
+                              handleToggle(s._id, s.isActive)
+                            }
+                            title={
+                              s.isActive ? "Deactivate" : "Activate"
+                            }
                           >
                             {s.isActive ? "✓" : "✕"}
                           </button>
@@ -251,6 +301,7 @@ function ServicesPage() {
                       </td>
                     </tr>
                   ))}
+
                   {filteredServices.length === 0 && (
                     <tr>
                       <td
@@ -271,15 +322,19 @@ function ServicesPage() {
           </div>
         </div>
 
-        {/* RIGHT CARD: FORM (Same Height) */}
-        <div className="form-card">
+        {/* RIGHT: FORM */}
+        <div className="form-card" ref={formRef}>
           <h4 className="form-title">
             {editingId ? "Edit Service" : "Add New Service"}
           </h4>
 
           {formError && (
             <div
-              style={{ color: "red", fontSize: "0.85rem", marginBottom: 10 }}
+              style={{
+                color: "red",
+                fontSize: "0.85rem",
+                marginBottom: 10,
+              }}
             >
               {formError}
             </div>
@@ -304,7 +359,10 @@ function ServicesPage() {
                 className="modern-input"
                 value={formData.category}
                 onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
+                  setFormData({
+                    ...formData,
+                    category: e.target.value,
+                  })
                 }
                 placeholder="e.g. Hair"
               />
@@ -317,7 +375,10 @@ function ServicesPage() {
                 className="modern-input"
                 value={formData.price}
                 onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
+                  setFormData({
+                    ...formData,
+                    price: e.target.value,
+                  })
                 }
                 placeholder="0"
               />
