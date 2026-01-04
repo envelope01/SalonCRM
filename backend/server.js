@@ -38,9 +38,11 @@ app.get("/", (req, res) => {
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;
+
 const MONGO_URI =
-  process.env.MONGO_URI ||
-  "mongodb+srv://demodb:soL7NLPpUvy9P6V4@cluster0.oavkixr.mongodb.net/NBLCRM?retryWrites=true&w=majority";
+  process.env.ActiveDb === "Dev"
+    ? process.env.MONGO_URI_DEV
+    : process.env.MONGO_URI;
 
 mongoose
   .connect(MONGO_URI)
