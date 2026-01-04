@@ -216,6 +216,7 @@ function ClientsPage() {
                 placeholder="Phone number"
                 value={phone}
                 inputMode="numeric"
+                maxLength="15"
                 onChange={(e) =>
                   setPhone(
                     e.target.value.replace(/\D/g, "")
