@@ -40,7 +40,7 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 const MONGO_URI =
   process.env.MONGO_URI ||
-  "mongodb+srv://demodb:soL7NLPpUvy9P6V4@cluster0.oavkixr.mongodb.net/salon_crm?retryWrites=true&w=majority";
+  "mongodb+srv://demodb:soL7NLPpUvy9P6V4@cluster0.oavkixr.mongodb.net/NBLCRM?retryWrites=true&w=majority";
 
 mongoose
   .connect(MONGO_URI)
