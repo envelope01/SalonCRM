@@ -33,7 +33,7 @@ app.use("/api/expenses", expenseRoutes);
 
 // Simple health check route
 app.get("/", (req, res) => {
-  res.send("Salon CRM API is running");
+  res.send("Salon CRM API is running version 1.0");
 });
 
 // Connect to MongoDB and start server
