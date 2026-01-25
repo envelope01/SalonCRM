@@ -1,0 +1,609 @@
+/* ======================================================
+   CLIENT DETAIL PAGE
+   ====================================================== */
+
+.client-detail-container {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ======================================================
+   COMMON CARD STYLES
+   ====================================================== */
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+  margin: 0;
+  color: #333;
+}
+
+h4,
+h5 {
+  margin: 0 0 16px 0;
+  color: #444;
+  font-weight: 600;
+}
+
+.muted {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.small {
+  font-size: 0.75rem;
+}
+
+/* ======================================================
+   PROFILE SECTION (TOP)
+   ====================================================== */
+
+.profile-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.profile-left {
+  position: relative;
+}
+
+.notes-text {
+  margin-top: 16px;
+  padding: 14px;
+  background: #fff5f9;
+  border-radius: 12px;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Edit Button */
+
+.edit-client-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  width: 36px;
+  height: 36px;
+
+  border: none;
+  border-radius: 50%;
+  background: #fce4ec;
+  color: #d63384;
+
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-client-btn:hover {
+  background: #d63384;
+  color: #fff;
+}
+
+/* Edit Inputs */
+
+.edit-input,
+.edit-textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+
+  border: 1px solid #ddd;
+  border-radius: 8px;
+
+  font-family: inherit;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ======================================================
+   PROFILE SUMMARY (RIGHT)
+   ====================================================== */
+
+.profile-right {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #fce4ec;
+  background: linear-gradient(135deg, #fff 0%, #fff0f6 100%);
+}
+
+.profile-right h5 {
+  color: #d63384;
+  letter-spacing: 0.5px;
+}
+
+.last-date {
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.service-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.last-total {
+  display: flex;
+  justify-content: space-between;
+
+  margin-top: 16px;
+  padding-top: 12px;
+
+  border-top: 1px dashed #e2b6d0;
+
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #d63384;
+}
+
+/* ======================================================
+   BOTTOM GRID (TIMELINE + BILLING)
+   ====================================================== */
+
+/* Mobile-first: stack billing above timeline */
+
+.bottom-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.bottom-grid .timeline-card {
+  order: 2;
+}
+
+.bottom-grid .add-visit-card {
+  order: 1;
+}
+
+.add-visit-card,
+.timeline-card {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+/* ======================================================
+   TIMELINE (LEFT CARD)
+   ====================================================== */
+
+.timeline-card {
+  padding: 20px 15px;
+}
+
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+
+  padding-top: 10px;
+  padding-right: 5px;
+
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+/* Timeline Scrollbars */
+
+.timeline-container::-webkit-scrollbar,
+.billing-scroll-area::-webkit-scrollbar {
+  width: 5px;
+}
+
+.timeline-container::-webkit-scrollbar-thumb,
+.billing-scroll-area::-webkit-scrollbar-thumb {
+  background: #e2b6d0;
+  border-radius: 10px;
+}
+
+.timeline-container::-webkit-scrollbar-track,
+.billing-scroll-area::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+/* Timeline Items */
+
+.timeline-item {
+  display: flex;
+  min-height: 70px;
+}
+
+.timeline-left {
+  flex: 0 0 50px;
+  padding-top: 4px;
+  padding-right: 10px;
+  text-align: right;
+}
+
+.time-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.timeline-separator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 16px;
+}
+
+.t-dot {
+  width: 12px;
+  height: 12px;
+
+  border-radius: 50%;
+  border: 2px solid #fce4ec;
+  background: #d63384;
+
+  z-index: 2;
+}
+
+.t-connector {
+  flex-grow: 1;
+  width: 2px;
+  margin: 2px 0;
+  background-color: #eee;
+}
+
+.timeline-content {
+  flex: 1;
+  padding-left: 12px;
+  padding-bottom: 20px;
+}
+
+.t-services {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.3;
+}
+
+.t-price {
+  margin-top: 2px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #d63384;
+}
+
+.empty-state {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+/* ======================================================
+   BILLING (RIGHT CARD)
+   ====================================================== */
+
+.add-visit-card {
+  padding: 0;
+  border: 1px solid #e0e0e0;
+}
+
+/* Header */
+
+.billing-header {
+  padding: 15px 20px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.compact-date-input {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: #f5f5f5;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.service-select-modern {
+  flex: 1;
+  padding: 8px 10px;
+
+  border: 1px solid #ddd;
+  border-radius: 8px;
+
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.service-select-modern:focus {
+  border-color: #d63384;
+}
+
+.add-btn-modern {
+  width: 38px;
+  border: none;
+  border-radius: 8px;
+
+  background: #333;
+  color: #fff;
+
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.add-btn-modern:hover {
+  background: #000;
+}
+
+.add-btn-modern:disabled {
+  background: #ccc;
+}
+
+/* Billing Content */
+
+.billing-scroll-area {
+  padding: 12px 16px;
+  background: #fafafa;
+  overflow-y: visible;
+}
+
+.billing-empty-state {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #bbb;
+}
+
+/* Chips */
+
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.service-chip {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 4px 4px 4px 12px;
+  border-radius: 50px;
+
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+
+  transition: all 0.2s;
+}
+
+.service-chip:hover {
+  border-color: #d63384;
+  transform: translateY(-1px);
+}
+
+.chip-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chip-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.chip-price-box {
+  display: flex;
+  align-items: center;
+  padding: 2px 6px;
+
+  background: #f8f9fa;
+  border-radius: 20px;
+}
+
+.tiny-symbol {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.chip-price-input {
+  min-width: 56px;
+  border: none;
+  background: transparent;
+
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #d63384;
+}
+
+.chip-price-input:focus {
+  outline: none;
+}
+
+.chip-remove {
+  width: 24px;
+  height: 24px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #eee;
+  color: #666;
+
+  font-size: 1rem;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chip-remove:hover {
+  background: #ffcccc;
+  color: #d00;
+}
+
+.chip-badge {
+  position: absolute;
+  top: -6px;
+  right: 8px;
+
+  padding: 2px 5px;
+  border-radius: 4px;
+
+  font-size: 0.6rem;
+  font-weight: bold;
+}
+
+.chip-badge.disc {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.chip-badge.extra {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+/* Footer */
+
+.billing-footer {
+  padding: 10px 16px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.compact-notes {
+  width: 100%;
+  padding: 6px 0;
+
+  border: none;
+  border-bottom: 1px dashed #ccc;
+
+  font-size: 0.85rem;
+  background: transparent;
+  margin-bottom: 8px;
+}
+
+.compact-notes:focus {
+  outline: none;
+  border-color: #d63384;
+}
+
+.checkout-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-label small {
+  display: block;
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.total-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #333;
+}
+
+.checkout-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 50px;
+
+  background: #d63384;
+  color: #fff;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  box-shadow: 0 4px 10px rgba(214, 51, 132, 0.3);
+  transition: transform 0.2s;
+}
+
+.checkout-btn:hover {
+  background: #c2185b;
+  transform: translateY(-1px);
+}
+
+/* ======================================================
+   RESPONSIVE BREAKPOINTS
+   ====================================================== */
+
+@media (min-width: 769px) {
+  .profile-card {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .profile-right {
+    padding: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .profile-card {
+    grid-template-columns: 1.5fr 1fr;
+    gap: 30px;
+    margin-bottom: 24px;
+  }
+
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 24px;
+    min-height: 360px;
+  }
+
+  .bottom-grid .timeline-card,
+  .bottom-grid .add-visit-card {
+    order: 0;
+  }
+
+  .add-visit-card,
+  .timeline-card {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .timeline-container,
+  .billing-scroll-area {
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+
+  .chip-price-input {
+    min-width: 45px;
+  }
+}

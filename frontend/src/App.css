@@ -1,0 +1,99 @@
+/* =========================================================
+   ROOT APP LAYOUT
+   ========================================================= */
+.app-root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-top: 50px; /* space for fixed navbar */
+}
+
+
+/* =========================================================
+   MAIN CONTENT AREA
+   ========================================================= */
+.app-content {
+  flex: 1;
+  padding: clamp(1rem, 3vw, 2rem);
+  overflow: hidden; /* desktop default */
+}
+
+/* Enable vertical scroll on smaller devices */
+@media (max-width: 1024px) {
+  .app-content {
+    overflow-y: auto;
+  }
+}
+
+
+/* =========================================================
+   REUSABLE APP COMPONENTS
+   ========================================================= */
+
+/* Cards */
+.app-card {
+  background: #ffffff;
+  border-radius: var(--card-radius);
+  padding: clamp(1rem, 2vw, 1.25rem);
+  border: 1px solid var(--border-color);
+  transition: box-shadow var(--transition-speed) ease;
+}
+
+.app-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+
+/* =========================================================
+   BUTTON STYLES
+   ========================================================= */
+.btn {
+  border-radius: 6px;
+  font-size: clamp(0.85rem, 1vw, 0.95rem);
+  transition: all var(--transition-speed) ease;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.65rem;
+}
+
+
+/* Themed buttons */
+.btn-dark,
+.btn-success {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-dark:hover,
+.btn-success:hover {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+.table tbody tr td {
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+.text-muted {
+  color: var(--text-muted) !important;
+}

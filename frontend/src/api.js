@@ -3,7 +3,7 @@ import axios from "axios";
 /* =========================================================
    API CONFIGURATION
    ========================================================= */
-const API_BASE_URL = "https://saloncrm-com.onrender.com/api";
+const API_BASE_URL = "https://nblcrm-backend.onrender.com/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,

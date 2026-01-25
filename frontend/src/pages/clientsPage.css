@@ -1,0 +1,212 @@
+/* =========================================================
+   CLIENTS PAGE – Luxury Salon CRM
+   ========================================================= */
+
+/* =========================================================
+   HEADER (Mobile-first)
+   ========================================================= */
+.clients-top {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.page-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+  color: #222;
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+/* =========================================================
+   SEARCH INPUT
+   ========================================================= */
+.client-search {
+  width: 100%;
+  margin-top: 14px;
+  height: clamp(44px, 6vh, 46px);
+  padding: 0 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+.client-search:focus {
+  outline: none;
+  border-color: #d63384;
+  box-shadow: 0 0 0 2px rgba(214, 51, 132, 0.15);
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+.add-client-btn,
+.save-client-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #7b2c61, #d63384);
+  border: none;
+  border-radius: 22px;
+}
+
+/* Helper: full-width on mobile */
+.mobile-full {
+  width: 100%;
+}
+
+/* =========================================================
+   CARD BASE
+   ========================================================= */
+.lux-card {
+  padding: clamp(12px, 2.5vw, 16px);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   CLIENT GRID (Mobile-first)
+   ========================================================= */
+.clients-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(12px, 3vw, 16px);
+}
+
+/* =========================================================
+   CLIENT CARD
+   ========================================================= */
+.client-card {
+  position: relative;
+}
+
+.client-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.client-avatar {
+  width: clamp(36px, 8vw, 42px);
+  height: clamp(36px, 8vw, 42px);
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7b2c61, #d63384);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* =========================================================
+   TEXT
+   ========================================================= */
+.client-name {
+  font-weight: 600;
+}
+
+.client-phone {
+  font-size: 0.8rem;
+  color: #777;
+}
+
+/* =========================================================
+   VIEW PROFILE LINK
+   ========================================================= */
+.open-client {
+  display: inline-block;
+  margin-top: clamp(8px, 1.5vw, 12px);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #d63384;
+  text-decoration: none;
+}
+
+/* =========================================================
+   DELETE BUTTON
+   ========================================================= */
+.delete-client-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  padding: 6px;
+  font-size: 1rem;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  opacity: 0.6;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+.delete-client-btn:hover,
+.delete-client-btn:focus-visible {
+  opacity: 1;
+  color: #c0392b;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* =========================================================
+   LINK RESET
+   ========================================================= */
+.client-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =========================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================= */
+@media (min-width: 576px) {
+  .clients-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .clients-top {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mobile-full {
+    width: auto;
+  }
+
+  .clients-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .delete-client-btn {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+@media (min-width: 992px) {
+  .clients-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}

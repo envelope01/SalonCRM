@@ -1,0 +1,169 @@
+/* ======================================================
+   LOGIN PAGE
+   ====================================================== */
+
+.login-page {
+  height: 100vh;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px;
+  overflow: hidden;
+
+  font-family: "Inter", sans-serif;
+  background: radial-gradient(circle at top left, #fdf6f9, #f8e8f0);
+}
+
+/* ======================================================
+   LOGIN WRAPPER
+   ====================================================== */
+
+.login-wrapper {
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+
+  box-shadow: 0 20px 40px rgba(214, 51, 132, 0.1);
+}
+
+/* ======================================================
+   BRAND SECTION (Mobile-first)
+   ====================================================== */
+
+.login-brand {
+  padding: 20px 15px;
+  text-align: center;
+
+  color: #ffffff;
+  background: linear-gradient(135deg, #7b2c61 0%, #d63384 100%);
+}
+
+.login-brand h2 {
+  margin-bottom: 4px;
+
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.login-brand h2 span {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 300;
+}
+
+.login-brand p {
+  margin: 0 auto;
+  max-width: 250px;
+
+  font-size: 0.8rem;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
+/* ======================================================
+   FORM SECTION (Mobile-first)
+   ====================================================== */
+
+.login-form {
+  padding: 20px;
+  background: #ffffff;
+}
+
+.login-form h5 {
+  margin-bottom: 4px;
+
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.subtitle {
+  margin-bottom: 15px;
+
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ======================================================
+   INPUTS & LABELS
+   ====================================================== */
+
+.login-form .form-control {
+  height: 45px;
+  margin-bottom: 10px;
+
+  font-size: 0.9rem;
+  border-radius: 10px;
+}
+
+.form-label {
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+}
+
+/* ======================================================
+   PRIMARY BUTTON
+   ====================================================== */
+
+.login-form .btn-primary {
+  height: 45px;
+  margin-top: 5px;
+
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+
+  background: linear-gradient(135deg, #7b2c61 0%, #d63384 100%);
+}
+
+/* ======================================================
+   DESKTOP / LAPTOP LAYOUT
+   ====================================================== */
+
+@media (min-width: 992px) {
+  .login-wrapper {
+    max-width: 900px;
+    max-height: 550px;
+    flex-direction: row;
+  }
+
+  .login-brand {
+    width: 45%;
+    padding: 60px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    text-align: left;
+  }
+
+  .login-brand h2 {
+    font-size: 2.2rem;
+  }
+
+  .login-brand p {
+    max-width: 100%;
+    font-size: 1rem;
+  }
+
+  .login-form {
+    width: 55%;
+    padding: 60px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
