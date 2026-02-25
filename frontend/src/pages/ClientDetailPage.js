@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 
 import api from "../api";
-import "./clientDetail.css";
+// styling switched to Tailwind, old CSS removed
 
 /* ======================================================
    CLIENT DETAIL PAGE
@@ -179,33 +179,33 @@ function ClientDetailPage() {
      RENDER
      ====================================================== */
   return (
-    <div className="client-detail-container">
-      {/* ================= PROFILE ================= */}
-      <div className="card profile-card">
-        <div className="profile-left">
+    <div className="page-container">
+      {/* profile section */}
+      <div className="app-card flex flex-col lg:flex-row gap-6">
+        <div className="relative flex-1">
           <button
-            className="edit-client-btn"
-            onClick={() =>
-              setEditing((v) => !v)
-            }
+            className="absolute top-2 right-2 w-9 h-9 rounded-full bg-pink-100 text-brandPink hover:bg-brandPink hover:text-white transition"
+            onClick={() => setEditing((v) => !v)}
           >
             ✎
           </button>
 
           {!editing ? (
-            <>
-              <h2>{client.name}</h2>
-              <div className="muted">
+            <div>
+              <h2 className="text-xl font-bold">
+                {client.name}
+              </h2>
+              <div className="text-gray-600">
                 {client.phone}
               </div>
-              <div className="notes-text">
+              <div className="mt-4 p-4 bg-pink-50 rounded-lg text-gray-700">
                 {client.notes || "Persistent Note"}
               </div>
-            </>
+            </div>
           ) : (
-            <>
+            <div className="space-y-2">
               <input
-                className="edit-input"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 value={form.name}
                 onChange={(e) =>
                   setForm({
@@ -216,7 +216,7 @@ function ClientDetailPage() {
               />
 
               <input
-                className="edit-input"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 value={form.phone}
                 onChange={(e) =>
                   setForm({
@@ -227,7 +227,7 @@ function ClientDetailPage() {
               />
 
               <textarea
-                className="edit-textarea"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 value={form.notes}
                 onChange={(e) =>
                   setForm({
@@ -237,7 +237,7 @@ function ClientDetailPage() {
                 }
               />
 
-              <div className="edit-actions">
+              <div className="flex gap-2 mt-2">
                 <button
                   className="btn-primary"
                   onClick={saveClient}
@@ -246,158 +246,127 @@ function ClientDetailPage() {
                 </button>
 
                 <button
-                  className="btn-cancel"
-                  onClick={() =>
-                    setEditing(false)
-                  }
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-gray-600"
+                  onClick={() => setEditing(false)}
                 >
                   Cancel
                 </button>
               </div>
-            </>
+            </div>
           )}
         </div>
 
-        <div className="profile-right">
-          <h5>Last Visit Summary</h5>
+        <div className="flex-1 p-4 bg-gradient-to-br from-white to-pink-50 border border-pink-200 rounded-lg">
+          <h5 className="text-md font-semibold text-brandPink">
+            Last Visit Summary
+          </h5>
 
           {lastVisit ? (
             <>
-              <div className="last-date">
-                {new Date(
-                  lastVisit.visitDate
-                ).toLocaleDateString("en-IN", {
+              <div className="text-sm text-gray-600 mb-2">
+                {new Date(lastVisit.visitDate).toLocaleDateString("en-IN", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
                 })}
               </div>
 
-              {lastVisit.services.map(
-                (s, i) => (
-                  <div
-                    key={i}
-                    className="service-row"
-                  >
-                    <span>{s.name}</span>
-                    <strong>
-                      ₹{s.chargedPrice}
-                    </strong>
-                  </div>
-                )
-              )}
+              {lastVisit.services.map((s, i) => (
+                <div
+                  key={i}
+                  className="flex justify-between text-sm mb-1"
+                >
+                  <span>{s.name}</span>
+                  <strong>₹{s.chargedPrice}</strong>
+                </div>
+              ))}
 
-              <div className="last-total">
+              <div className="flex justify-between mt-4 pt-2 border-t border-pink-200 text-lg font-bold text-brandPink">
                 <span>Total</span>
-                <strong>
-                  ₹{lastVisit.totalAmount}
-                </strong>
+                <span>₹{lastVisit.totalAmount}</span>
               </div>
             </>
           ) : (
-            <div className="muted small">
+            <div className="text-gray-500 text-sm">
               No visits yet
             </div>
           )}
         </div>
       </div>
 
-      {/* ================= BOTTOM GRID ================= */}
-      <div className="bottom-grid responsive-bottom">
-        {/* VISIT HISTORY */}
-        <div className="card timeline-card">
-          <h4>Visit History</h4>
-
-          <div className="timeline-container">
+      {/* bottom grid */}
+      <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+        {/* visit history */}
+        <div className="app-card flex flex-col flex-1 min-h-0">
+          <h4 className="text-lg font-semibold mb-4">Visit History</h4>
+          <div className="flex-1 min-h-0 internal-scroll">
+            {visits.length === 0 && (
+              <div className="text-center text-gray-500 py-8">
+                No history available
+              </div>
+            )}
             {visits.map((v, index) => (
-              <div
-                key={v._id}
-                className="timeline-item"
-              >
-                {/* Left */}
-                <div className="timeline-left">
-                  <span className="time-text">
-                    {new Date(
-                      v.visitDate
-                    ).toLocaleDateString("en-IN", {
+              <div key={v._id} className="flex mb-6">
+                <div className="w-12 text-right pr-2">
+                  <span className="text-xs font-semibold text-gray-600">
+                    {new Date(v.visitDate).toLocaleDateString("en-IN", {
                       day: "numeric",
                       month: "short",
                     })}
                   </span>
                 </div>
-
-                {/* Center */}
-                <div className="timeline-separator">
-                  <div className="t-dot" />
+                <div className="flex flex-col items-center">
+                  <div className="w-3 h-3 rounded-full bg-brandPink border-2 border-pink-100"></div>
                   {index !== visits.length - 1 && (
-                    <div className="t-connector" />
+                    <div className="w-px flex-1 bg-gray-200"></div>
                   )}
                 </div>
-
-                {/* Right */}
-                <div className="timeline-content">
-                  <div className="t-services">
-                    {v.services
-                      .map((s) => s.name)
-                      .join(", ")}
+                <div className="pl-4">
+                  <div className="text-sm font-medium text-gray-800">
+                    {v.services.map((s) => s.name).join(", ")}
                   </div>
-                  <div className="t-price">
+                  <div className="text-sm font-semibold text-brandPink">
                     ₹{v.totalAmount}
                   </div>
                 </div>
               </div>
             ))}
-
-            {visits.length === 0 && (
-              <div className="empty-state">
-                No history available
-              </div>
-            )}
           </div>
         </div>
 
-        {/* BILLING */}
-        <div className="card add-visit-card">
-          {/* HEADER */}
-          <div className="billing-header">
-            <div className="header-top-row">
-              <h4>New Visit Billing</h4>
+        {/* billing */}
+        <div className="app-card flex flex-col flex-1 min-h-0">
+          {/* header */}
+          <div className="p-4 flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+              <h4 className="text-lg font-semibold">
+                New Visit Billing
+              </h4>
               <input
                 type="date"
-                className="compact-date-input"
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
                 value={visitDate}
-                onChange={(e) =>
-                  setVisitDate(e.target.value)
-                }
+                onChange={(e) => setVisitDate(e.target.value)}
               />
             </div>
 
-            <div className="input-group">
+            <div className="flex gap-2">
               <select
-                className="service-select-modern"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
                 value={selectedServiceId}
                 onChange={(e) =>
-                  setSelectedServiceId(
-                    e.target.value
-                  )
+                  setSelectedServiceId(e.target.value)
                 }
               >
-                <option value="">
-                  Select service to add...
-                </option>
-
+                <option value="">Select service to add...</option>
                 {services.map((s) => (
-                  <option
-                    key={s._id}
-                    value={s._id}
-                  >
+                  <option key={s._id} value={s._id}>
                     {s.name} (₹{s.price})
                   </option>
                 ))}
               </select>
-
               <button
-                className="add-btn-modern"
+                className="bg-gray-800 text-white rounded-lg px-3"
                 onClick={addServiceToVisit}
                 disabled={!selectedServiceId}
               >
@@ -406,66 +375,43 @@ function ClientDetailPage() {
             </div>
           </div>
 
-          {/* CHIPS */}
-          <div className="billing-scroll-area">
+          {/* chips / content */}
+          <div className="flex-1 min-h-0 internal-scroll p-4 bg-gray-50">
             {visitServices.length === 0 ? (
-              <div className="billing-empty-state">
-                <p>
-                  Select services above to create a bill
-                </p>
+              <div className="text-center text-gray-500 py-8">
+                <p>Select services above to create a bill</p>
               </div>
             ) : (
-              <div className="chips-container">
+              <div className="flex flex-wrap gap-2">
                 {visitServices.map((s, i) => {
-                  const diff =
-                    s.chargedPrice - s.basePrice;
-
+                  const diff = s.chargedPrice - s.basePrice;
                   return (
-                    <div
-                      key={i}
-                      className="service-chip"
-                    >
-                      <div className="chip-content">
-                        <span className="chip-name">
-                          {s.name}
-                        </span>
-
-                        <div className="chip-price-box">
-                          <span className="tiny-symbol">
-                            ₹
-                          </span>
-                          <input
-                            type="number"
-                            className="chip-price-input"
-                            value={s.chargedPrice}
-                            onChange={(e) =>
-                              updateChargedPrice(
-                                i,
-                                e.target.value
-                              )
-                            }
-                            onClick={(e) =>
-                              e.target.select()
-                            }
-                          />
-                        </div>
+                    <div key={i} className="relative flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-gray-200 shadow-sm">
+                      <span className="text-sm font-medium">
+                        {s.name}
+                      </span>
+                      <div className="flex items-center bg-gray-100 rounded px-1 text-sm font-semibold text-brandPink">
+                        <span>₹</span>
+                        <input
+                          type="number"
+                          className="w-12 bg-transparent text-right focus:outline-none"
+                          value={s.chargedPrice}
+                          onChange={(e) =>
+                            updateChargedPrice(i, e.target.value)
+                          }
+                          onClick={(e) => e.target.select()}
+                        />
                       </div>
-
                       <button
-                        className="chip-remove"
-                        onClick={() =>
-                          removeService(i)
-                        }
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-xs"
+                        onClick={() => removeService(i)}
                       >
                         ×
                       </button>
-
                       {diff !== 0 && (
                         <span
-                          className={`chip-badge ${
-                            diff < 0
-                              ? "disc"
-                              : "extra"
+                          className={`absolute -top-2 -right-6 text-xs font-bold ${
+                            diff < 0 ? "text-red-600" : "text-green-600"
                           }`}
                         >
                           {diff < 0 ? "-" : "+"}
@@ -478,30 +424,24 @@ function ClientDetailPage() {
             )}
           </div>
 
-          {/* FOOTER */}
-          <div className="billing-footer">
+          {/* footer */}
+          <div className="p-4">
             <input
               type="text"
-              className="compact-notes"
+              className="w-full border-b border-gray-300 pb-1 mb-2"
               placeholder="Add a remark or note..."
               value={visitNotes}
-              onChange={(e) =>
-                setVisitNotes(e.target.value)
-              }
+              onChange={(e) => setVisitNotes(e.target.value)}
             />
 
-            <div className="checkout-row">
-              <div className="total-label">
-                <small>Total Bill</small>
-                <div className="total-value">
+            <div className="flex justify-between items-center">
+              <div>
+                <small className="text-gray-500">Total Bill</small>
+                <div className="text-2xl font-bold">
                   ₹{currentTotal}
                 </div>
               </div>
-
-              <button
-                className="checkout-btn"
-                onClick={addVisit}
-              >
+              <button onClick={addVisit} className="btn-primary">
                 Save & Print
               </button>
             </div>

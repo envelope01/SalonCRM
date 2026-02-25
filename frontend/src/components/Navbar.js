@@ -1,128 +1,121 @@
-  import React from "react";
-  import { NavLink, Link } from "react-router-dom";
-
-  import "./navbar.css";
+import React, { useState } from "react";
+import { NavLink, Link } from "react-router-dom";
+// navbar now styled with Tailwind; old CSS removed
 
   const Navbar = ({ user, onLogout }) => {
     /* ======================================================
       HELPERS
       ====================================================== */
 
-    // Manually close Bootstrap collapse menu on mobile
-    const closeMobileMenu = () => {
-      const menu = document.getElementById("mainNavbar");
-
-      if (menu && menu.classList.contains("show")) {
-        menu.classList.remove("show");
-      }
-    };
+const [menuOpen, setMenuOpen] = useState(false);
+  const closeMobileMenu = () => setMenuOpen(false);
+  const toggleMenu = () => setMenuOpen((v) => !v);
 
     /* ======================================================
       UI
       ====================================================== */
     return (
-      <nav className="navbar navbar-expand-lg fixed-top custom-navbar">
-        <div className="container-fluid px-4">
-          {/* MOBILE TOGGLER */}
-          <button
-            className="navbar-toggler border-0 shadow-none"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#mainNavbar"
-            aria-controls="mainNavbar"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
+      <nav className="fixed inset-x-0 top-0 bg-white/95 backdrop-blur border-b border-gray-200 z-50">
+      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
+        <Link
+          className="text-lg font-bold flex items-center gap-1"
+          to={user ? "/" : "/login"}
+          onClick={closeMobileMenu}
+        >
+          NUTAN’S
+          <span className="text-brandPink">BEAUTY LOUNGE</span>
+        </Link>
 
-          {/* BRAND */}
-          <Link
-            className="navbar-brand brand-text d-flex align-items-center"
-            to={user ? "/" : "/login"}
-            onClick={closeMobileMenu}
-          >
-            NUTAN’S&nbsp;
-            <span className="brand-highlight">BEAUTY LOUNGE</span>
-          </Link>
+        {user && (
+          <>
+            <button
+              className="lg:hidden p-2"
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d={
+                    menuOpen
+                      ? "M6 18L18 6M6 6l12 12"
+                      : "M4 6h16M4 12h16M4 18h16"
+                  }
+                />
+              </svg>
+            </button>
 
-          {/* COLLAPSIBLE CONTENT */}
-          <div className="collapse navbar-collapse" id="mainNavbar">
-            {/* NAV LINKS */}
-            {user && (
-              <ul className="navbar-nav me-auto mb-2 mb-lg-0 mt-3 mt-lg-0">
-                <li className="nav-item">
-                  <NavLink
-                    to="/"
-                    end
-                    className={({ isActive }) =>
-                      `nav-link custom-link ${
-                        isActive ? "active-link" : ""
-                      }`
-                    }
-                    onClick={closeMobileMenu}
-                  >
-                    Clients
-                  </NavLink>
-                </li>
+            <div
+              className={`flex-col lg:flex-row lg:flex lg:items-center lg:space-x-6 ${
+                menuOpen ? "flex" : "hidden"
+              }`}
+            >
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md text-gray-700 hover:text-brandPink font-medium ${
+                    isActive ? "text-brandPink" : ""
+                  }`
+                }
+                onClick={closeMobileMenu}
+              >
+                Clients
+              </NavLink>
 
-                <li className="nav-item">
-                  <NavLink
-                    to="/services"
-                    className={({ isActive }) =>
-                      `nav-link custom-link ${
-                        isActive ? "active-link" : ""
-                      }`
-                    }
-                    onClick={closeMobileMenu}
-                  >
-                    Services
-                  </NavLink>
-                </li>
+              <NavLink
+                to="/services"
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md text-gray-700 hover:text-brandPink font-medium ${
+                    isActive ? "text-brandPink" : ""
+                  }`
+                }
+                onClick={closeMobileMenu}
+              >
+                Services
+              </NavLink>
 
+              {user.role !== "staff" && (
+                <NavLink
+                  to="/reports"
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-md text-gray-700 hover:text-brandPink font-medium ${
+                      isActive ? "text-brandPink" : ""
+                    }`
+                  }
+                  onClick={closeMobileMenu}
+                >
+                  Reports
+                </NavLink>
+              )}
 
-                {/* Show Reports only if user is NOT staff */}
-                {user.role !== "staff" && (
-                <li className="nav-item">
-                  <NavLink
-                    to="/reports"
-                    className={({ isActive }) =>
-                      `nav-link custom-link ${
-                        isActive ? "active-link" : ""
-                      }`
-                    }
-                    onClick={closeMobileMenu}
-                  >
-                    Reports
-                  </NavLink>
-                </li>
-                )}
-              </ul>
-            )}
-
-            {/* USER ACTIONS */}
-            {user && (
-              <div className="d-flex align-items-center ms-auto pb-3 pb-lg-0">
-                <div className="d-flex align-items-center gap-3">
-                  <span className="user-greeting d-none d-lg-block">
-                    Hey, <strong>{user.name}</strong>
-                  </span>
-
-                  <button
-                    className="btn btn-sm btn-logout"
-                    onClick={() => {
-                      onLogout();
-                      closeMobileMenu();
-                    }}
-                  >
-                    Logout
-                  </button>
-                </div>
+              <div className="flex items-center gap-3 mt-4 lg:mt-0">
+                <span className="hidden lg:block text-sm text-gray-600">
+                  Hey, <strong>{user.name}</strong>
+                </span>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    onLogout();
+                    closeMobileMenu();
+                  }}
+                >
+                  Logout
+                </button>
               </div>
-            )}
-          </div>
-        </div>
-      </nav>
+            </div>
+          </>
+        )}
+      </div>
+    </nav>
     );
   };
 

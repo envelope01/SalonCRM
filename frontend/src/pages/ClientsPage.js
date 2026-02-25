@@ -7,7 +7,7 @@ import React, {
 
 import { Link } from "react-router-dom";
 import api from "../api";
-import "./clientsPage.css";
+// styling switched to Tailwind; old CSS removed
 
 /* ======================================================
    CLIENTS PAGE
@@ -164,81 +164,72 @@ function ClientsPage() {
      RENDER
      ====================================================== */
   return (
-    <div className="container-fluid px-4">
+    <div className="page-container">
       {/* HEADER */}
-      <div className="clients-top row align-items-center">
-        <div className="col-12 col-md">
-          <h3 className="page-title">Clients</h3>
-          <p className="page-subtitle">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900">Clients</h3>
+          <p className="text-sm text-gray-600">
             Manage and access your salon’s clientele
           </p>
         </div>
-
-        <div className="col-12 col-md-auto mt-2 mt-md-0 text-md-end">
-          <button
-            className="add-client-btn mobile-full"
-            onClick={handleAddNewClick}
-          >
-            {showForm ? "Cancel" : "+ New Client"}
-          </button>
-        </div>
+        <button
+          className="btn-primary w-full md:w-auto"
+          onClick={handleAddNewClick}
+        >
+          {showForm ? "Cancel" : "+ New Client"}
+        </button>
       </div>
 
       {/* ADD CLIENT FORM */}
       {showForm && (
-        <div className="lux-card mt-3" ref={formSectionRef}>
-          <h5 className="mb-3" style={{ fontWeight: 700 }}>
+        <div
+          className="app-card mt-3"
+          ref={formSectionRef}
+        >
+          <h5 className="font-bold text-lg mb-3">
             Add New Client
           </h5>
 
           {error && (
-            <div className="alert alert-danger">
+            <div className="bg-red-100 text-red-700 rounded-lg px-3 py-2 mb-4">
               {error}
             </div>
           )}
 
-          <form onSubmit={addClient} className="row g-2">
-            <div className="col-md-4">
-              <input
-                className="form-control"
-                placeholder="Client name"
-                value={name}
-                autoFocus
-                onChange={(e) =>
-                  setName(e.target.value)
-                }
-              />
-            </div>
+          <form
+            onSubmit={addClient}
+            className="grid grid-cols-1 md:grid-cols-3 gap-3"
+          >
+            <input
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
+              placeholder="Client name"
+              value={name}
+              autoFocus
+              onChange={(e) => setName(e.target.value)}
+            />
 
-            <div className="col-md-4">
-              <input
-                className="form-control"
-                placeholder="Phone number"
-                value={phone}
-                inputMode="numeric"
-                maxLength="15"
-                onChange={(e) =>
-                  setPhone(
-                    e.target.value.replace(/\D/g, "")
-                  )
-                }
-              />
-            </div>
+            <input
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
+              placeholder="Phone number"
+              value={phone}
+              inputMode="numeric"
+              maxLength="15"
+              onChange={(e) =>
+                setPhone(e.target.value.replace(/\D/g, ""))
+              }
+            />
 
-            <div className="col-md-4">
-              <input
-                className="form-control"
-                placeholder="Notes (optional)"
-                value={notes}
-                onChange={(e) =>
-                  setNotes(e.target.value)
-                }
-              />
-            </div>
+            <input
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
+              placeholder="Notes (optional)"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
 
-            <div className="col-12 text-end">
+            <div className="md:col-span-3 text-right">
               <button
-                className="save-client-btn"
+                className="btn-primary"
                 disabled={saving}
               >
                 {saving ? "Saving..." : "Save Client"}
@@ -248,30 +239,32 @@ function ClientsPage() {
         </div>
       )}
 
-      {/* SEARCH */}
-      <input
-        className="client-search"
-        placeholder="Search by name or phone number…"
-        value={search}
-        onChange={handleSearch}
-      />
+      {/* SCROLLABLE CONTENT */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {/* SEARCH */}
+        <input
+          className="w-full mt-4 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
+          placeholder="Search by name or phone number…"
+          value={search}
+          onChange={handleSearch}
+        />
 
-      {/* CLIENT GRID */}
-      <div className="clients-grid mt-4">
+        {/* CLIENT GRID */}
+        <div className="page-grid mt-4">
         {loading ? (
-          <p className="text-muted">Loading…</p>
+          <p className="text-gray-500">Loading…</p>
         ) : clients.length === 0 ? (
-          <p className="text-muted">No clients found</p>
+          <p className="text-gray-500">No clients found</p>
         ) : (
           clients.map((c) => (
             <Link
               key={c._id}
               to={`/clients/${c._id}`}
-              className="client-card-link"
+              className="block"
             >
-              <div className="client-card lux-card">
+              <div className="relative app-card hover:shadow-lg transition">
                 <button
-                  className="delete-client-btn"
+                  className="absolute top-2 right-2 text-gray-400 hover:text-red-600"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -281,22 +274,22 @@ function ClientsPage() {
                   🗑️
                 </button>
 
-                <div className="client-row">
-                  <div className="client-avatar">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-brandPink text-white flex items-center justify-center font-semibold">
                     {initials(c.name)}
                   </div>
 
                   <div>
-                    <div className="client-name">
+                    <div className="font-semibold text-gray-900">
                       {c.name}
                     </div>
-                    <div className="client-phone">
+                    <div className="text-sm text-gray-600">
                       {c.phone}
                     </div>
                   </div>
                 </div>
 
-                <span className="open-client">
+                <span className="inline-block mt-3 text-sm font-semibold text-brandPink">
                   View Profile →
                 </span>
               </div>
@@ -304,7 +297,9 @@ function ClientsPage() {
           ))
         )}
       </div>
+      {/* end scrollable content */}
     </div>
+  </div>
   );
 }
 

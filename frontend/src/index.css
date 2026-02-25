@@ -1,90 +1,56 @@
-/* =========================================================
-   GLOBAL FOUNDATION
-   Layout, tokens & resets only
-   ========================================================= */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* =========================================================
-   DESIGN TOKENS
-   ========================================================= */
-:root {
-  /* Brand palette */
-  --primary-color: #540863;
-  --accent-color: #92487a;
+/* custom design tokens and utilities live in components/utilities layers below */
 
-  /* Neutrals */
-  --background-light: #f8fafc;
-  --text-dark: #111827;
-  --text-muted: #6b7280;
-  --border-color: rgba(0, 0, 0, 0.08);
+@layer base {
 
-  /* Design tokens */
-  --card-radius: 10px;
-  --transition-speed: 0.2s;
-
-  /* Base font stack */
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-
-/* =========================================================
-   RESET & BOX MODEL
-   ========================================================= */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-
-/* =========================================================
-   VIEWPORT OWNERSHIP
-   ========================================================= */
-html,
-body,
-#root {
-  min-height: 100dvh;
-  width: 100%;
-}
-
-
-/* =========================================================
-   BODY BASE STYLES
-   ========================================================= */
-body {
-  margin: 0;
-  background: var(--background-light);
-  color: var(--text-dark);
-
-  /* Responsive base typography */
-  font-size: clamp(14px, 1.2vw, 16px);
-  line-height: 1.5;
-
-  /* Text rendering */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  /* Scroll behavior */
-  overflow-x: hidden; /* prevent horizontal scroll bugs */
-  overflow-y: hidden; /* desktop default */
-}
-
-
-/* Enable vertical scrolling on tablet & mobile */
-@media (max-width: 1024px) {
+  /* base resets or overrides if needed */
   body {
-    overflow-y: auto;
+    /* body overflow will be controlled by layout classes; default hidden to enforce non-scrolling root */
+    @apply overflow-hidden bg-gray-50 text-gray-900;
   }
 }
 
+@layer components {
+  .app-root {
+    @apply h-screen flex flex-col overflow-hidden pt-16;
+    /* space for fixed navbar */
+  }
 
-/* =========================================================
-   SMALL GLOBAL UTILITIES
-   ========================================================= */
-.mt-1-5 {
-  margin-top: 1.5rem;
+  .app-content {
+    @apply flex-1 overflow-hidden p-4 md:p-6;
+  }
+
+  .page-container {
+    @apply h-full min-h-0 flex flex-col gap-4;
+  }
+
+  .page-grid {
+    @apply grid gap-4 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .app-card {
+    @apply bg-white rounded-2xl shadow-md border border-gray-100 p-4 md:p-6;
+  }
+
+  .btn-primary {
+    @apply bg-brandPink text-white px-5 py-2 rounded-full font-semibold hover:bg-pink-700 transition;
+  }
+
+  .internal-scroll {
+    @apply overflow-y-auto scrollbar-thin;
+  }
 }
 
-.mb-1-5 {
-  margin-bottom: 1.5rem;
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #d63384;
+    border-radius: 10px;
+  }
 }

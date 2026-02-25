@@ -25,8 +25,7 @@ import { getCurrentUser, clearAuth } from "./api";
 /* =========================
    STYLES
    ========================= */
-import "./index.css";
-import "./App.css";
+import "./index.css"; // tailwind directives and global components
 
 function App() {
   /* =========================

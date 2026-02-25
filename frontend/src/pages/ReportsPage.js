@@ -11,7 +11,7 @@ import {
   ArcElement,
 } from "chart.js";
 import api from "../api";
-import "./reportsPage.css";
+// styling handled with Tailwind, legacy CSS removed
 
 ChartJS.register(
   CategoryScale,
@@ -207,48 +207,56 @@ function ReportsPage() {
   };
 
   return (
-    <div className="reports-container">
-      {/* 1. HEADER */}
-      <div className="page-header">
-        <div className="header-title">
-          <h2>Finance Dashboard</h2>
-          <p>Profit & Loss Overview</p>
+    <div className="page-container">
+      {/* header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">Finance Dashboard</h2>
+          <p className="text-sm text-gray-600">
+            Profit &amp; Loss Overview
+          </p>
         </div>
-        <div className="controls-wrapper">
+        <div className="flex flex-wrap gap-2 items-center bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
           <button
-            className={`preset-btn ${period === "today" ? "active" : ""}`}
+            className={`px-3 py-1 rounded-md font-medium ${
+              period === "today" ? "bg-pink-100 text-brandPink" : "text-gray-600"
+            }`}
             onClick={() => applyPreset("today")}
           >
             Today
           </button>
           <button
-            className={`preset-btn ${period === "week" ? "active" : ""}`}
+            className={`px-3 py-1 rounded-md font-medium ${
+              period === "week" ? "bg-pink-100 text-brandPink" : "text-gray-600"
+            }`}
             onClick={() => applyPreset("week")}
           >
             Week
           </button>
           <button
-            className={`preset-btn ${period === "month" ? "active" : ""}`}
+            className={`px-3 py-1 rounded-md font-medium ${
+              period === "month" ? "bg-pink-100 text-brandPink" : "text-gray-600"
+            }`}
             onClick={() => applyPreset("month")}
           >
             Month
           </button>
-          <div className="date-range">
+          <div className="flex items-center gap-2 border-l border-gray-200 pl-3">
             <input
+              className="border border-gray-300 rounded-md px-2 py-1 text-sm"
               type="date"
-              className="date-input"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
             />
-            <span>-</span>
+            <span className="text-gray-500">–</span>
             <input
+              className="border border-gray-300 rounded-md px-2 py-1 text-sm"
               type="date"
-              className="date-input"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
             />
             <button
-              className="go-btn"
+              className="ml-2 bg-gray-800 text-white px-3 py-1 rounded-md text-sm"
               onClick={() => fetchData(fromDate, toDate)}
             >
               Go
@@ -257,24 +265,30 @@ function ReportsPage() {
         </div>
       </div>
 
-      {/* 2. KPI CARDS */}
-      <div className="kpi-row">
-        <div className="kpi-card green">
-          <span className="kpi-title">Total Income</span>
-          <div className="kpi-value">
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+        <div className="app-card border-b-4 border-green-500">
+          <div className="text-xs font-semibold text-gray-500 uppercase">
+            Total Income
+          </div>
+          <div className="mt-1 text-2xl font-bold text-gray-900">
             ₹{summary.totalEarnings.toLocaleString()}
           </div>
         </div>
-        <div className="kpi-card red">
-          <span className="kpi-title">Total Expenses</span>
-          <div className="kpi-value">
+        <div className="app-card border-b-4 border-red-500">
+          <div className="text-xs font-semibold text-gray-500 uppercase">
+            Total Expenses
+          </div>
+          <div className="mt-1 text-2xl font-bold text-gray-900">
             ₹{summary.totalExpenses.toLocaleString()}
           </div>
         </div>
-        <div className="kpi-card blue">
-          <span className="kpi-title">Net Profit</span>
+        <div className="app-card border-b-4 border-blue-500">
+          <div className="text-xs font-semibold text-gray-500 uppercase">
+            Net Profit
+          </div>
           <div
-            className="kpi-value"
+            className="mt-1 text-2xl font-bold"
             style={{ color: summary.netProfit >= 0 ? "#333" : "#dc3545" }}
           >
             ₹{summary.netProfit.toLocaleString()}
@@ -282,99 +296,68 @@ function ReportsPage() {
         </div>
       </div>
 
-      {/* 3. CONTENT GRID */}
-      <div className="content-grid">
-        {/* LEFT PANEL */}
-        <div className="left-panel">
-          <div className="left-row">
-            {/* FLIP CHART CARD (RIGHT) */}
-            <div className={`flip-card ${isFlipped ? "flipped" : ""}`}>
-              <div className="flip-inner">
-                {/* FRONT: BAR CHART */}
-                <div className="flip-front">
-                  <button
-                    className="flip-icon-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsFlipped(true);
-                    }}
-                    title="View breakdown"
-                  >
-                    ⟳
-                  </button>
-
-                  <h4 className="section-title">Income vs Expenses</h4>
-                  <div className="chart-plot">
-                    <Bar
-                      data={barChartData}
-                      options={{ maintainAspectRatio: false, responsive: true }}
-                    />
+      {/* content */}
+      <div className="flex flex-col lg:flex-row gap-4 mt-4 flex-1 min-h-0">
+        {/* left panel */}
+        <div className="flex-1 flex flex-col gap-4 min-h-0 internal-scroll">
+          {/* flip card */}
+          <div className="relative">
+            <div className="w-full h-72" style={{ perspective: 1200 }}>
+              <div
+                className="w-full h-full relative transition-transform duration-500"
+                style={{ transform: isFlipped ? "rotateY(180deg)" : "none" }}
+              >
+                <div className="absolute inset-0 bg-white border border-gray-200 rounded-xl p-4 flex flex-col">
+                  <div className="text-lg font-medium mb-2">
+                    Income vs Expense
+                  </div>
+                  <div className="flex-1">
+                    <Bar data={barChartData} options={{ maintainAspectRatio: false }} />
                   </div>
                 </div>
-
-                {/* BACK: DOUGHNUT */}
-                <div className="flip-back">
-                  <button
-                    className="flip-icon-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsFlipped(false);
-                    }}
-                    title="Back to chart"
-                  >
-                    ⟲
-                  </button>
-
-                  <h4 className="section-title">Expense Breakdown</h4>
-                  <div className="chart-plot">
-                    <Doughnut
-                      data={doughnutData}
-                      options={{
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: "bottom" } },
-                      }}
-                    />
+                <div className="absolute inset-0 bg-white border border-gray-200 rounded-xl p-4 flex flex-col" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                  <div className="text-lg font-medium mb-2">
+                    Profit &amp; Loss
+                  </div>
+                  <div className="flex-1">
+                    <Doughnut data={doughnutData} options={{ maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }} />
                   </div>
                 </div>
               </div>
             </div>
+            <button
+              className="absolute top-2 right-2 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-pink-200 transition-transform"
+              onClick={() => setIsFlipped((v) => !v)}
+              title="Flip card"
+            >
+              🔄
+            </button>
           </div>
 
-          <div className="expense-list-card">
-            <div className="table-header">
-              <span>Recent Expenses</span>
+          {/* recent expenses table */}
+          <div className="app-card">
+            <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+              <h5 className="font-semibold">Recent Expenses</h5>
               <button
-                className="view-history-btn"
+                className="text-sm text-brandPink underline"
                 onClick={handleViewAllHistory}
               >
                 View All History →
               </button>
             </div>
-            <table className="simple-table">
+            <table className="w-full text-sm">
               <tbody>
-                {/* Now expensesList is definitely sorted new to old */}
-                {expensesList.slice(0, 1).map((e) => (
-                  <tr key={e._id}>
-                    <td style={{ width: "20%" }}>
-                      {new Date(e.date).toLocaleDateString()}
-                    </td>
-                    <td style={{ width: "30%" }}>
-                      <strong>{e.category}</strong>
-                    </td>
-                    <td style={{ color: "#888" }}>{e.notes || "-"}</td>
-                    <td className="amount-red">₹{e.amount}</td>
+                {expensesList.slice(0, 10).map((e) => (
+                  <tr key={e._id} className="odd:bg-gray-50">
+                    <td className="py-2">{new Date(e.date).toLocaleDateString()}</td>
+                    <td className="py-2">{e.category}</td>
+                    <td className="py-2">{e.notes || "-"}</td>
+                    <td className="py-2 text-right font-semibold text-red-600">₹{e.amount}</td>
                   </tr>
                 ))}
                 {expensesList.length === 0 && (
                   <tr>
-                    <td
-                      colSpan="4"
-                      style={{
-                        textAlign: "center",
-                        padding: 20,
-                        color: "#999",
-                      }}
-                    >
+                    <td colSpan="4" className="text-center py-4 text-gray-500">
                       No expenses in this period
                     </td>
                   </tr>
@@ -384,148 +367,91 @@ function ReportsPage() {
           </div>
         </div>
 
-        {/* RIGHT PANEL: ADD EXPENSE */}
-        <div className="right-panel">
-          {/* FIX 2: HEADER WITH DATE PICKER */}
-          <div className="add-expense-header">
-            <h4> Add Expense</h4>
+        {/* right panel */}
+        <div className="app-card w-full lg:w-80 flex-shrink-0">
+          <div className="flex justify-between items-center pb-2 mb-3 border-b border-gray-200">
+            <h4 className="font-semibold">Add Expense</h4>
             <input
               type="date"
-              className="header-date-input"
+              className="border border-gray-300 rounded-md px-2 py-1 text-sm"
               value={expenseForm.date}
-              onChange={(e) =>
-                setExpenseForm({ ...expenseForm, date: e.target.value })
-              }
+              onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
             />
           </div>
-
-          <form onSubmit={handleSaveExpense}>
-            {/* Date input removed from here, moved to header */}
-
-            <div className="form-group">
-              <label className="form-label">Category</label>
-              <select
-                className="modern-select"
+          <form onSubmit={handleSaveExpense} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Category</label>
+              <input
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 value={expenseForm.category}
-                onChange={(e) =>
-                  setExpenseForm({ ...expenseForm, category: e.target.value })
-                }
-              >
-                <option value="">Select...</option>
-                <option value="Rent">Rent</option>
-                <option value="Electricity">Electricity</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Tea/Snacks">Tea/Snacks</option>
-                <option value="Other">Other</option>
-              </select>
+                onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+              />
             </div>
-
-            <div className="form-group">
-              <label className="form-label">Amount (₹)</label>
+            <div>
+              <label className="block text-sm font-medium mb-1">Amount (₹)</label>
               <input
                 type="number"
-                className="modern-input"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 placeholder="0"
                 value={expenseForm.amount}
-                onChange={(e) =>
-                  setExpenseForm({ ...expenseForm, amount: e.target.value })
-                }
+                onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
               />
             </div>
-
-            <div className="form-group">
-              <label className="form-label">Notes</label>
+            <div>
+              <label className="block text-sm font-medium mb-1">Notes</label>
               <input
                 type="text"
-                className="modern-input"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 placeholder="Details..."
                 value={expenseForm.notes}
-                onChange={(e) =>
-                  setExpenseForm({ ...expenseForm, notes: e.target.value })
-                }
+                onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
               />
             </div>
-
-            <button type="submit" className="save-btn" disabled={isSaving}>
+            <button className="btn-primary w-full" disabled={isSaving}>
               {isSaving ? "Saving..." : "Save Expense"}
             </button>
           </form>
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* modal */}
       {showHistoryModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>All Expense History</h3>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg max-h-[70vh] rounded-xl overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold">All Expense History</h3>
               <button
-                className="close-modal-btn"
                 onClick={() => setShowHistoryModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200"
               >
                 ×
               </button>
             </div>
-            <div className="modal-body">
-              {loadingHistory ? (
-                <div className="modal-loading">Loading full history...</div>
-              ) : (
-                <table className="simple-table">
-                  <thead
-                    style={{ position: "sticky", top: 0, background: "#fff" }}
-                  >
-                    <tr>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "10px 20px",
-                          color: "#888",
-                        }}
-                      >
-                        Date
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "10px 20px",
-                          color: "#888",
-                        }}
-                      >
-                        Category
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "10px 20px",
-                          color: "#888",
-                        }}
-                      >
-                        Notes
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "right",
-                          padding: "10px 20px",
-                          color: "#888",
-                        }}
-                      >
-                        Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fullHistory.map((e) => (
-                      <tr key={e._id}>
-                        <td>{new Date(e.date).toLocaleDateString()}</td>
-                        <td>{e.category}</td>
-                        <td style={{ color: "#888" }}>{e.notes}</td>
-                        <td className="amount-red">₹{e.amount}</td>
+            <div className="flex-1 overflow-y-auto p-4">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-white">
+                  <tr>
+                    <th className="p-2 text-left text-gray-500">Date</th>
+                    <th className="p-2 text-left text-gray-500">Category</th>
+                    <th className="p-2 text-left text-gray-500">Notes</th>
+                    <th className="p-2 text-right text-gray-500">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingHistory ? (
+                    <tr><td colSpan="4" className="text-center p-4">Loading...</td></tr>
+                  ) : (
+                    fullHistory.map((e) => (
+                      <tr key={e._id} className="odd:bg-gray-50">
+                        <td className="p-2">{new Date(e.date).toLocaleDateString()}</td>
+                        <td className="p-2">{e.category}</td>
+                        <td className="p-2 text-gray-600">{e.notes}</td>
+                        <td className="p-2 text-right font-semibold text-red-600">₹{e.amount}</td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

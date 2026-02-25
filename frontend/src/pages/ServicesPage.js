@@ -6,7 +6,7 @@ import React, {
 } from "react";
 
 import api from "../api";
-import "./servicesPage.css";
+// Tailwind handles styling now; old CSS removed
 
 /* ======================================================
    SERVICES PAGE
@@ -169,149 +169,123 @@ function ServicesPage() {
   };
 
   const getCategoryClass = (cat) => {
-    if (!cat) return "cat-default";
+    if (!cat) return "bg-gray-100 text-gray-600";
 
     const lower = cat.toLowerCase();
-
-    if (lower.includes("hair")) return "cat-hair";
+    if (lower.includes("hair")) return "bg-blue-100 text-blue-800";
     if (lower.includes("skin") || lower.includes("facial"))
-      return "cat-skin";
-
-    return "cat-default";
+      return "bg-pink-100 text-pink-700";
+    return "bg-gray-100 text-gray-600";
   };
 
   /* ======================================================
      RENDER
      ====================================================== */
   return (
-    <div className="services-container services-page">
+    <div className="page-container">
       {/* HEADER */}
-      <div className="page-header">
-        <div className="header-left">
-          <h2 className="page-title">Service Menu</h2>
-          <p className="page-subtitle">Manage your salon catalog</p>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">Service Menu</h2>
+          <p className="text-sm text-gray-600">
+            Manage your salon catalog
+          </p>
         </div>
 
-        <div className="header-stats">
-          <div className="stat-pill">
-            <div className="dot green" />
-            <span>Active:</span>
-            <strong>{activeCount}</strong>
-          </div>
-
-          <div className="stat-pill">
-            <div className="dot red" />
-            <span>Inactive:</span>
-            <strong>{inactiveCount}</strong>
-          </div>
+        <div className="flex gap-4 text-sm">
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+            Active: <strong>{activeCount}</strong>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-red-500"></span>
+            Inactive: <strong>{inactiveCount}</strong>
+          </span>
         </div>
       </div>
 
-      <div className="services-grid">
-        {/* LEFT: SERVICES LIST */}
-        <div className="services-list-card">
-          <div className="table-controls">
+      {/* GRID CONTENT */}
+      <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+        {/* LEFT: LIST */}
+        <div className="app-card flex flex-col flex-1 min-h-0">
+          <div className="pb-2">
             <input
               type="text"
-              className="search-input"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
               placeholder="Search services..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          <div className="table-scroll-area">
+          <div className="flex-1 min-h-0 internal-scroll">
             {loading && (
-              <div style={{ padding: 20, textAlign: "center", color: "#999" }}>
+              <div className="py-5 text-center text-gray-500">
                 Loading...
               </div>
             )}
 
             {error && (
-              <div
-                style={{
-                  padding: 20,
-                  textAlign: "center",
-                  color: "#dc3545",
-                }}
-              >
+              <div className="py-5 text-center text-red-600">
                 {error}
               </div>
             )}
 
             {!loading && !error && (
-              <table className="services-table">
-                <thead>
+              <table className="w-full table-auto text-sm">
+                <thead className="sticky top-0 bg-white">
                   <tr>
-                    <th style={{ width: "35%" }}>Name</th>
-                    <th style={{ width: "25%" }}>Category</th>
-                    <th style={{ width: "20%" }}>Price</th>
-                    <th style={{ width: "10%" }}>Actions</th>
+                    <th className="text-left p-2">Name</th>
+                    <th className="text-left p-2">Category</th>
+                    <th className="text-left p-2">Price</th>
+                    <th className="text-left p-2">Actions</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {filteredServices.map((s) => (
                     <tr
                       key={s._id}
-                      className={!s.isActive ? "inactive-row" : ""}
+                      className={!s.isActive ? "opacity-60" : ""}
                     >
-                      <td>
-                        <div style={{ fontWeight: 500 }}>{s.name}</div>
-                      </td>
-
-                      <td>
+                      <td className="p-2 font-medium">{s.name}</td>
+                      <td className="p-2">
                         <span
-                          className={`category-chip ${getCategoryClass(
+                          className={`px-2 py-1 rounded-full text-xs font-semibold ${getCategoryClass(
                             s.category
                           )}`}
                         >
                           {s.category || "General"}
                         </span>
                       </td>
-
-                      <td>
-                        <span className="price-tag">₹{s.price}</span>
-                      </td>
-
-                      <td>
-                        <div className="action-buttons">
-                          <button
-                            className="icon-btn btn-edit"
-                            onClick={() => handleEdit(s)}
-                            title="Edit"
-                          >
-                            ✎
-                          </button>
-
-                          <button
-                            className={`icon-btn btn-toggle ${
-                              !s.isActive ? "off" : ""
-                            }`}
-                            onClick={() =>
-                              handleToggle(s._id, s.isActive)
-                            }
-                            title={
-                              s.isActive ? "Deactivate" : "Activate"
-                            }
-                          >
-                            {s.isActive ? "✓" : "✕"}
-                          </button>
-                        </div>
+                      <td className="p-2 font-semibold">₹{s.price}</td>
+                      <td className="p-2 flex gap-2 justify-end">
+                        <button
+                          className="p-1 rounded-md hover:bg-gray-100"
+                          onClick={() => handleEdit(s)}
+                          title="Edit"
+                        >
+                          ✎
+                        </button>
+                        <button
+                          className={`p-1 rounded-md hover:bg-gray-100 ${
+                            !s.isActive ? "text-red-600" : "text-green-600"
+                          }`}
+                          onClick={() =>
+                            handleToggle(s._id, s.isActive)
+                          }
+                          title={
+                            s.isActive ? "Deactivate" : "Activate"
+                          }
+                        >
+                          {s.isActive ? "✓" : "✕"}
+                        </button>
                       </td>
                     </tr>
                   ))}
 
                   {filteredServices.length === 0 && (
                     <tr>
-                      <td
-                        colSpan="4"
-                        style={{
-                          textAlign: "center",
-                          padding: 30,
-                          color: "#999",
-                        }}
-                      >
+                      <td colSpan="4" className="text-center py-6 text-gray-500">
                         No services found
                       </td>
                     </tr>
@@ -323,28 +297,27 @@ function ServicesPage() {
         </div>
 
         {/* RIGHT: FORM */}
-        <div className="form-card" ref={formRef}>
-          <h4 className="form-title">
+        <div
+          className="app-card flex-shrink-0 w-full lg:w-80"
+          ref={formRef}
+        >
+          <h4 className="text-lg font-semibold mb-4">
             {editingId ? "Edit Service" : "Add New Service"}
           </h4>
 
           {formError && (
-            <div
-              style={{
-                color: "red",
-                fontSize: "0.85rem",
-                marginBottom: 10,
-              }}
-            >
+            <div className="text-red-600 text-sm mb-2">
               {formError}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="vertical-form">
-            <div className="form-group">
-              <label>Service Name</label>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Service Name
+              </label>
               <input
-                className="modern-input"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
@@ -353,10 +326,12 @@ function ServicesPage() {
               />
             </div>
 
-            <div className="form-group">
-              <label>Category</label>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Category
+              </label>
               <input
-                className="modern-input"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
                 value={formData.category}
                 onChange={(e) =>
                   setFormData({
@@ -368,11 +343,13 @@ function ServicesPage() {
               />
             </div>
 
-            <div className="form-group">
-              <label>Price (₹)</label>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Price (₹)
+              </label>
               <input
                 type="number"
-                className="modern-input"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
                 value={formData.price}
                 onChange={(e) =>
                   setFormData({
@@ -386,7 +363,7 @@ function ServicesPage() {
 
             <button
               type="submit"
-              className="btn-primary-block"
+              className="btn-primary w-full"
               disabled={isSaving}
             >
               {isSaving
@@ -399,7 +376,7 @@ function ServicesPage() {
             {editingId && (
               <button
                 type="button"
-                className="btn-cancel-block"
+                className="mt-2 w-full border border-gray-300 rounded-lg py-2 text-gray-600"
                 onClick={handleCancel}
               >
                 Cancel Edit
