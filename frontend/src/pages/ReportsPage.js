@@ -86,29 +86,35 @@ function ReportsPage() {
     }
   };
 
-  const applyPreset = (type) => {
-    setPeriod(type);
-    const now = new Date();
-    let start, end;
+const applyPreset = (type) => {
+  setPeriod(type);
+  const now = new Date();
+  let start, end;
 
-    if (type === "today") {
-      start = end = getToday();
-    } else if (type === "week") {
-      const day = now.getDay();
-      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-      const monday = new Date(now.setDate(diff));
-      start = monday.toISOString().slice(0, 10);
-      end = getToday();
-    } else {
-      start = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString()
-        .slice(0, 10);
-      end = getToday();
-    }
-    setFromDate(start);
-    setToDate(end);
-    fetchData(start, end);
-  };
+  if (type === "today") {
+    start = end = getToday();
+  } else if (type === "week") {
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.setDate(diff));
+    start = monday.toISOString().slice(0, 10);
+    end = getToday();
+  } else if (type === "year") {
+    start = new Date(now.getFullYear(), 0, 1)
+      .toISOString()
+      .slice(0, 10);
+    end = getToday();
+  } else {
+    start = new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString()
+      .slice(0, 10);
+    end = getToday();
+  }
+
+  setFromDate(start);
+  setToDate(end);
+  fetchData(start, end);
+};
 
   useEffect(() => {
     applyPreset("month");
@@ -200,6 +206,7 @@ function ReportsPage() {
           "#ffce56",
           "#4bc0c0",
           "#9966ff",
+          "#59f366",
         ],
         borderWidth: 0,
       },
@@ -241,6 +248,15 @@ function ReportsPage() {
           >
             Month
           </button>
+          <button
+            className={`px-3 py-1 rounded-md font-medium ${
+              period === "year" ? "bg-pink-100 text-brandPink" : "text-gray-600"
+            }`}
+            onClick={() => applyPreset("year")}
+            >
+              Year
+              </button>
+
           <div className="flex items-center gap-2 border-l border-gray-200 pl-3">
             <input
               className="border border-gray-300 rounded-md px-2 py-1 text-sm"
@@ -305,9 +321,9 @@ function ReportsPage() {
             <div className="w-full h-72" style={{ perspective: 1200 }}>
               <div
                 className="w-full h-full relative transition-transform duration-500"
-                style={{ transform: isFlipped ? "rotateY(180deg)" : "none" }}
+                style={{ transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)", transformStyle: "preserve-3d" }}
               >
-                <div className="absolute inset-0 bg-white border border-gray-200 rounded-xl p-4 flex flex-col">
+                <div className="absolute inset-0 bg-white border border-gray-200 rounded-xl p-4 flex flex-col" style={{ backfaceVisibility: "hidden" }}>
                   <div className="text-lg font-medium mb-2">
                     Income vs Expense
                   </div>
@@ -330,7 +346,7 @@ function ReportsPage() {
               onClick={() => setIsFlipped((v) => !v)}
               title="Flip card"
             >
-              🔄
+              ⟲
             </button>
           </div>
 
@@ -347,7 +363,7 @@ function ReportsPage() {
             </div>
             <table className="w-full text-sm">
               <tbody>
-                {expensesList.slice(0, 10).map((e) => (
+                {expensesList.slice(0, 1).map((e) => (
                   <tr key={e._id} className="odd:bg-gray-50">
                     <td className="py-2">{new Date(e.date).toLocaleDateString()}</td>
                     <td className="py-2">{e.category}</td>
@@ -380,12 +396,27 @@ function ReportsPage() {
           </div>
           <form onSubmit={handleSaveExpense} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
-              <input
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                value={expenseForm.category}
-                onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
-              />
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              Category
+            </label>
+
+            <select
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm "
+              value={expenseForm.category}
+              onChange={(e) =>
+                setExpenseForm({ ...expenseForm, category: e.target.value })
+              }
+            >
+              <option value="">Select...</option>
+              <option value="Rent">Rent</option>
+              <option value="Electricity">Electricity</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Tea/Snacks">Tea/Snacks</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Amount (₹)</label>

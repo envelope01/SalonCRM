@@ -211,7 +211,7 @@ function ServicesPage() {
           <div className="pb-2">
             <input
               type="text"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 "
               placeholder="Search services..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -317,7 +317,7 @@ function ServicesPage() {
                 Service Name
               </label>
               <input
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 "
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
@@ -331,7 +331,7 @@ function ServicesPage() {
                 Category
               </label>
               <input
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 "
                 value={formData.category}
                 onChange={(e) =>
                   setFormData({
@@ -349,7 +349,7 @@ function ServicesPage() {
               </label>
               <input
                 type="number"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brandPink"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 "
                 value={formData.price}
                 onChange={(e) =>
                   setFormData({

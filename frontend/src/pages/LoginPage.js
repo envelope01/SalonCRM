@@ -84,7 +84,7 @@ function LoginPage({ setUser }) {
                 Email Address
               </label>
               <input
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brandPink"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none "
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -97,7 +97,7 @@ function LoginPage({ setUser }) {
               </label>
               <input
                 type="password"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brandPink"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none "
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
