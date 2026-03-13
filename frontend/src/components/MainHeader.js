@@ -1,5 +1,4 @@
 // src/components/MainHeader.js
-import React from "react";
 import { clearAuth } from "../api";
 
 const MainHeader = ({ title, children }) => {

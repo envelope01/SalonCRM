@@ -158,18 +158,6 @@ function ServicesPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          {/* Top Add Button */}
-          <button
-            onClick={() => {
-              setFormData({ name: "", category: "", price: "" });
-              setShowMobileForm(true);
-            }}
-            className="bg-brandPink text-white px-4 py-3 rounded-2xl text-sm font-bold shadow-md active:scale-95 transition-transform whitespace-nowrap flex items-center gap-1"
-          >
-            <span>+</span>
-            <span className="hidden sm:inline">Add</span>
-          </button>
         </div>
 
         {/* Category Pills (Horizontal Scroll) */}
@@ -259,7 +247,7 @@ function ServicesPage() {
           setFormData({ name: "", category: "", price: "" });
           setShowMobileForm(true);
         }}
-        className="fixed bottom-28 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30 active:scale-90 transition-transform md:hidden"
+        className="fixed bottom-28 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30 active:scale-90 transition-transform"
       >
         +
       </button>

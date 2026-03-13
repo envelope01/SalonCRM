@@ -20,7 +20,7 @@ import LoginPage from "./pages/LoginPage";
    COMPONENTS & UTILS
    ========================= */
 import BottomNav from "./components/BottomNav";
-import { getCurrentUser, clearAuth } from "./api";
+import { getCurrentUser } from "./api";
 
 /* =========================
    STYLES

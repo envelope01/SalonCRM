@@ -206,7 +206,7 @@ function ClientsPage() {
       {/* FAB - Add Client (Pushed to bottom-28 so it sits above the BottomNav!) */}
       <button
         onClick={() => setShowModal(true)}
-        className="fixed bottom-28 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30 active:scale-90 transition-transform md:hidden"
+        className="fixed bottom-28 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30 active:scale-90 transition-transform"
       >
         +
       </button>
