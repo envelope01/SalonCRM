@@ -208,7 +208,7 @@ function ServicesPage() {
                   className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group"
                 >
                   <div className="flex justify-between items-center">
-                    
+                  
                     {/* Left: Info */}
                     <div className="flex-1 min-w-0 pr-4">
                       <div className="flex items-center gap-2 mb-1">
