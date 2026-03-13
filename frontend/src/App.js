@@ -19,13 +19,13 @@ import LoginPage from "./pages/LoginPage";
 /* =========================
    COMPONENTS & UTILS
    ========================= */
-import Navbar from "./components/Navbar";
+import BottomNav from "./components/BottomNav";
 import { getCurrentUser, clearAuth } from "./api";
 
 /* =========================
    STYLES
    ========================= */
-import "./index.css"; // tailwind directives and global components
+import "./index.css"; 
 
 function App() {
   /* =========================
@@ -44,22 +44,26 @@ function App() {
   /* =========================
      HANDLERS
      ========================= */
-  const handleLogout = () => {
-    clearAuth();
-    setUser(null);
-  };
+
 
   /* =========================
      ROUTER
      ========================= */
   return (
     <Router>
-      <div className="app-root">
-        {/* NAVBAR */}
-        {user && <Navbar user={user} onLogout={handleLogout} />}
+      {/* FIX 1: Removed 'h-screen overflow-hidden'. 
+        Replaced with 'min-h-screen bg-gray-50' to allow native mobile scrolling.
+      */}
+      <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
+        
+        {/* DESKTOP NAVBAR (Will be hidden on mobile via CSS inside Navbar usually) */}
+        
 
-        {/* MAIN CONTENT */}
-        <main className="app-content">
+        {/* FIX 2: Removed 'p-4' and 'overflow-hidden'. 
+          Our redesigned pages handle their own padding and scrolling now!
+          Added 'pb-24 md:pb-0' to guarantee the BottomNav NEVER covers the very bottom content.
+        */}
+        <main className="flex-1 w-full max-w-7xl mx-auto pb-24 md:pb-0">
           <Routes>
             {/* AUTH */}
             <Route
@@ -103,6 +107,9 @@ function App() {
             />
           </Routes>
         </main>
+
+        {/* MOBILE BOTTOM NAV */}
+        {user && <BottomNav />}
       </div>
     </Router>
   );

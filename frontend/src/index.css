@@ -9,34 +9,41 @@
   /* base resets or overrides if needed */
   body {
     /* body overflow will be controlled by layout classes; default hidden to enforce non-scrolling root */
-    @apply overflow-hidden bg-gray-50 text-gray-900;
+    @apply bg-gray-50 text-gray-900;
   }
 }
 
 @layer components {
-  .app-root {
-    @apply h-screen flex flex-col overflow-hidden pt-16;
-    /* space for fixed navbar */
-  }
-
-  .app-content {
-    @apply flex-1 overflow-hidden p-4 md:p-6;
-  }
-
   .page-container {
-    @apply h-full min-h-0 flex flex-col gap-4;
+    @apply h-full min-h-0 flex flex-col gap-3 pb-20 md:pb-0;
   }
 
   .page-grid {
-    @apply grid gap-4 md:grid-cols-2 lg:grid-cols-3;
+    @apply grid gap-3 md:grid-cols-2 lg:grid-cols-3;
   }
 
   .app-card {
-    @apply bg-white rounded-2xl shadow-md border border-gray-100 p-4 md:p-6;
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-3;
   }
 
   .internal-scroll {
     @apply overflow-y-auto scrollbar-thin;
+  }
+
+  .btn-primary {
+    @apply bg-brandPink text-white rounded-lg px-3 py-1.5 font-medium hover:bg-pink-600 transition-colors min-h-[44px];
+  }
+
+  .pb-safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .top-header {
+    @apply flex items-center justify-between p-4 bg-white border-b border-gray-100 md:hidden;
+  }
+
+  .back-button {
+    @apply flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors;
   }
 }
 
@@ -54,20 +61,21 @@
 @layer components {
   .btn-primary {
     @apply py-2 px-4 rounded-lg text-white font-medium transition-all active:scale-95;
-         display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 18px;
-  font-weight: 600;
-  color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 18px;
+    font-weight: 600;
+    color: #fff;
     background: linear-gradient(135deg, #7b2c61, #d63384);
-        border: none;
-  border-radius: 50px;
+    border: none;
+    border-radius: 50px;
   }
 
   .btn-primary:hover {
     @apply opacity-90 shadow-lg;
-    background: linear-gradient(135deg, #8b3c71, #e64394); /* Slightly lighter on hover */
+    background: linear-gradient(135deg, #8b3c71, #e64394);
+    /* Slightly lighter on hover */
 
 
   }

@@ -2,16 +2,19 @@ const express = require("express");
 const router = express.Router();
 const serviceController = require("../controllers/serviceController");
 
-// POST /api/services        → add service
+// Add service
 router.post("/", serviceController.addService);
 
-// GET /api/services         → get all active services
+// Get services
 router.get("/", serviceController.getServices);
 
-// PUT /api/services/:id     → update service
+// Update service
 router.put("/:id", serviceController.updateService);
 
+// Toggle active/inactive
 router.put("/toggle/:id", serviceController.toggleServiceStatus);
 
+// Delete service permanently
+router.delete("/:id", serviceController.deleteService);
 
 module.exports = router;

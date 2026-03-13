@@ -67,25 +67,27 @@ exports.updateService = async (req, res) => {
   }
 };
 
-// Soft delete (deactivate) service
-// exports.deleteService = async (req, res) => {
-//   try {
-//     const { id } = req.params;
+// Delete service permanently
+exports.deleteService = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-//     const service = await Service.findById(id);
-//     if (!service) {
-//       return res.status(404).json({ message: "Service not found" });
-//     }
+    const service = await Service.findByIdAndDelete(id);
 
-//     service.isActive = false;
-//     await service.save();
+    if (!service) {
+      return res.status(404).json({ message: "Service not found" });
+    }
 
-//     res.json({ message: "Service deactivated" });
-//   } catch (error) {
-//     console.error("Error deleting service:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
+    res.json({
+      message: "Service deleted successfully",
+      service,
+    });
+
+  } catch (error) {
+    console.error("Error deleting service:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // Toggle active/inactive status
 exports.toggleServiceStatus = async (req, res) => {

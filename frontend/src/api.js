@@ -9,13 +9,13 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-
 /* =========================================================
    REQUEST INTERCEPTOR
    Automatically attach auth token if present
    ========================================================= */
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  // Switched to sessionStorage for auto-logout on close
+  const token = sessionStorage.getItem("token");
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -24,28 +24,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-
 /* =========================================================
    AUTH HELPERS
    ========================================================= */
 export function saveAuth(token, user) {
-  localStorage.setItem("token", token);
-  localStorage.setItem("user", JSON.stringify(user || {}));
+  sessionStorage.setItem("token", token);
+  sessionStorage.setItem("user", JSON.stringify(user || {}));
 }
 
 export function clearAuth() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
+  sessionStorage.removeItem("token");
+  sessionStorage.removeItem("user");
 }
 
 export function getCurrentUser() {
   try {
-    return JSON.parse(localStorage.getItem("user") || "null");
+    return JSON.parse(sessionStorage.getItem("user") || "null");
   } catch {
     return null;
   }
 }
-
 
 /* =========================================================
    EXPORT
