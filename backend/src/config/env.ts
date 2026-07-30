@@ -13,6 +13,7 @@ type Env = {
 const backendRoot = path.resolve(__dirname, "../..");
 const nodeEnv = (process.env.NODE_ENV || "development") as Env["NODE_ENV"];
 const originalProcessEnv = { ...process.env };
+const shouldPreferRuntimeEnv = nodeEnv !== "development";
 
 function loadEnvFile(fileName: string, override: boolean) {
   const filePath = path.join(backendRoot, fileName);
@@ -26,10 +27,13 @@ loadEnvFile(".env", false);
 loadEnvFile(`.env.${nodeEnv}`, true);
 loadEnvFile(`.env.${nodeEnv}.local`, true);
 
-// Real environment variables from Render/Vercel/Neon/Supabase/etc. always win.
-for (const [key, value] of Object.entries(originalProcessEnv)) {
-  if (value !== undefined) {
-    process.env[key] = value;
+// Cloud/runtime variables should win in production. Local development should
+// prefer .env.development to avoid accidentally connecting to hosted services.
+if (shouldPreferRuntimeEnv) {
+  for (const [key, value] of Object.entries(originalProcessEnv)) {
+    if (value !== undefined) {
+      process.env[key] = value;
+    }
   }
 }
 
@@ -47,6 +51,14 @@ const missing = requiredKeys.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
   throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+}
+
+const isLocalDatabase = /localhost|127\.0\.0\.1/i.test(process.env.DATABASE_URL || "");
+
+if (nodeEnv === "development" && !isLocalDatabase) {
+  throw new Error(
+    "Development mode must use local PostgreSQL. Set backend/.env.development DATABASE_URL to postgres://postgres:root@localhost:5432/salon_db and clear any shell DATABASE_URL override.",
+  );
 }
 
 export const env = {

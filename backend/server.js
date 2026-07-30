@@ -1,4 +1,6 @@
 // server.js
+require("tsx/cjs");
+
 const express = require("express");
 const cors = require("cors");
 const { clientOrigins, env } = require("./src/config/env.ts");
