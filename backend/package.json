@@ -8,8 +8,11 @@
     "dev": "cross-env NODE_ENV=development nodemon --exec tsx server.js",
     "db:generate": "cross-env NODE_ENV=development drizzle-kit generate",
     "db:migrate": "cross-env NODE_ENV=development drizzle-kit migrate",
-    "db:migrate:prod": "cross-env NODE_ENV=production drizzle-kit migrate",
-    "db:push:prod": "cross-env NODE_ENV=production drizzle-kit push",
+    "db:migrate:prod": "cross-env NODE_ENV=production tsx scripts/run-pg-migrations.ts",
+    "db:migrate:kit:prod": "cross-env NODE_ENV=production drizzle-kit migrate",
+    "db:push:prod": "cross-env NODE_ENV=production drizzle-kit push --verbose",
+    "db:push:prod:force": "cross-env NODE_ENV=production drizzle-kit push --verbose --force",
+    "db:check:tables": "tsx scripts/check-pg-tables.ts",
     "render:build": "npm run db:migrate:prod",
     "render:start": "npm start",
     "migrate:mongo-to-pg": "cross-env NODE_ENV=development tsx scripts/migrate-mongo-to-pg.ts"
