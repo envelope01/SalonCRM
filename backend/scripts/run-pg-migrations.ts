@@ -2,6 +2,8 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
+process.env.NODE_ENV = process.env.NODE_ENV || "production";
+
 const databaseUrl = process.env.DATABASE_URL?.trim();
 
 if (!databaseUrl) {
