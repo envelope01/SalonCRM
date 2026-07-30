@@ -89,6 +89,8 @@ Build Command: npm install && npm run render:build
 Start Command: npm run render:start
 ```
 
+Do not set the Start Command to plain `npm run`; that only prints the available scripts and exits before the Express server starts.
+
 `render:build` runs `drizzle-kit migrate` against the Render PostgreSQL database using `NODE_ENV=production`. Use `db:push:prod` only for controlled schema syncs when you intentionally want Drizzle Kit to push schema changes directly.
 
 Frontend Service:
