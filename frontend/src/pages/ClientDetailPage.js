@@ -1,8 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import api from "../api";
 import TopHeader from "../components/TopHeader";
+import TrashIcon from "../components/TrashIcon";
+import { useConfirm } from "../dialogs/ConfirmDialogProvider";
+import { clientService } from "../services/clientService";
+import { serviceService } from "../services/serviceService";
+import { visitService } from "../services/visitService";
+import {
+  clientValidationError,
+  isValidDate,
+  normalizePhoneInput,
+  parseMoney,
+} from "../utils/validation";
+import { toast } from "../notifications/toastBus";
 
 /* ======================================================
    CLIENT DETAIL PAGE (MOBILE PREMIUM)
@@ -10,6 +21,7 @@ import TopHeader from "../components/TopHeader";
 function ClientDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   /* ---------------- STATE ---------------- */
   const [client, setClient] = useState(null);
@@ -20,6 +32,7 @@ function ClientDetailPage() {
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", notes: "" });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isDeletingClient, setIsDeletingClient] = useState(false);
 
   // New Bill State
   const [visitDate, setVisitDate] = useState("");
@@ -39,9 +52,9 @@ function ClientDetailPage() {
     const load = async () => {
       try {
         const [clientRes, serviceRes, visitRes] = await Promise.all([
-          api.get(`/clients/${id}`),
-          api.get("/services"),
-          api.get(`/visits/client/${id}`),
+          clientService.getClientById(id),
+          serviceService.getServices(),
+          visitService.getClientVisits(id),
         ]);
 
         setClient(clientRes.data);
@@ -64,15 +77,48 @@ function ClientDetailPage() {
      HANDLERS
      ====================================================== */
   const saveClient = async () => {
+    const validationError = clientValidationError(form);
+    if (validationError) {
+      toast.warning(validationError);
+      return;
+    }
+
     try {
       setIsSavingProfile(true);
-      const res = await api.put(`/clients/${id}`, form);
+      const res = await clientService.updateClient(id, {
+        name: form.name.trim(),
+        phone: normalizePhoneInput(form.phone),
+        notes: form.notes.trim(),
+      });
       setClient(res.data);
       setShowEditSheet(false);
-    } catch (err) {
-      alert("Failed to update client");
+      toast.success("Client updated successfully");
+    } catch {
     } finally {
       setIsSavingProfile(false);
+    }
+  };
+
+  const deleteClient = async () => {
+    const confirmed = await confirm({
+      title: "Delete client?",
+      message: `Delete ${client.name}? This will remove the client from the active list.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Keep",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setIsDeletingClient(true);
+      await clientService.deleteClient(id);
+      toast.success("Client deleted successfully");
+      navigate("/", { replace: true });
+    } catch {
+      setIsDeletingClient(false);
     }
   };
 
@@ -85,9 +131,10 @@ function ClientDetailPage() {
   };
 
   const updateChargedPrice = (index, value) => {
+    const amount = parseMoney(value);
     setVisitServices((prev) =>
       prev.map((s, i) =>
-        i === index ? { ...s, chargedPrice: Math.max(0, Number(value) || 0) } : s
+        i === index ? { ...s, chargedPrice: amount ?? 0 } : s
       )
     );
   };
@@ -102,22 +149,35 @@ function ClientDetailPage() {
   );
 
   const addVisit = async () => {
-    if (!visitServices.length) return alert("Please add at least one service");
+    if (!isValidDate(visitDate)) {
+      toast.warning("Visit date is required");
+      return;
+    }
+
+    if (!visitServices.length) {
+      toast.warning("Please add at least one service");
+      return;
+    }
+
+    if (visitServices.some((service) => parseMoney(service.chargedPrice) === null)) {
+      toast.warning("Each service amount must be valid");
+      return;
+    }
 
     try {
       setIsSavingVisit(true);
-      await api.post("/visits", {
+      await visitService.createVisit({
         clientId: id,
         visitDate,
         services: visitServices.map((s) => ({
           serviceId: s._id,
           chargedPrice: s.chargedPrice,
         })),
-        notes: visitNotes,
+        notes: visitNotes.trim(),
         totalAmount: currentTotal,
       });
 
-      const refreshed = await api.get(`/visits/client/${id}`);
+      const refreshed = await visitService.getClientVisits(id);
       setVisits(refreshed.data);
       setVisitServices([]);
       setVisitNotes("");
@@ -128,8 +188,8 @@ function ClientDetailPage() {
           lastVisit: visitDate, 
           totalSpent: (prev.totalSpent || 0) + currentTotal 
       }));
-    } catch (err) {
-      alert("Failed to save bill");
+      toast.success("Bill saved successfully");
+    } catch {
     } finally {
       setIsSavingVisit(false);
     }
@@ -179,7 +239,17 @@ function ClientDetailPage() {
             <button onClick={() => setShowEditSheet(true)} className="w-12 h-12 rounded-2xl bg-gray-100 text-gray-600 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform">
               ✎
             </button>
+            <button
+              type="button"
+              disabled={isDeletingClient}
+              onClick={deleteClient}
+              className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform disabled:opacity-60"
+              aria-label="Delete client"
+            >
+              {isDeletingClient ? "..." : <TrashIcon className="h-5 w-5" />}
+            </button>
           </div>
+
         </motion.div>
 
         {/* NEW BILL (RECEIPT CARD) */}
@@ -191,6 +261,7 @@ function ClientDetailPage() {
           <div className="space-y-4">
             <input
               type="date"
+              required
               className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-bold text-gray-700 outline-none"
               value={visitDate}
               onChange={(e) => setVisitDate(e.target.value)}
@@ -213,6 +284,8 @@ function ClientDetailPage() {
                           <span className="text-xs text-brandPink font-bold">₹</span>
                           <input
                             type="number"
+                            min="0"
+                            step="1"
                             className="w-12 bg-transparent text-right text-sm font-bold text-gray-900 focus:outline-none"
                             value={s.chargedPrice}
                             onChange={(e) => updateChargedPrice(i, e.target.value)}
@@ -235,6 +308,7 @@ function ClientDetailPage() {
               placeholder="Any remarks? (Optional)"
               className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm outline-none"
               value={visitNotes}
+              maxLength="1000"
               onChange={(e) => setVisitNotes(e.target.value)}
             />
 
@@ -245,7 +319,7 @@ function ClientDetailPage() {
               </div>
               <button 
                 onClick={addVisit} 
-                disabled={isSavingVisit || visitServices.length === 0}
+                disabled={isSavingVisit}
                 className="bg-primary text-white px-6 py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-50"
               >
                 {isSavingVisit ? "Saving..." : "Save Bill"}
@@ -298,10 +372,10 @@ function ClientDetailPage() {
               <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
               <h2 className="text-xl font-black mb-6 text-gray-900">Edit Profile</h2>
               <div className="space-y-4">
-                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full Name" />
-                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.phone} inputMode="numeric" onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} placeholder="Phone Number" />
-                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" />
-                <button onClick={saveClient} disabled={isSavingProfile} className="w-full bg-primary text-white py-4 rounded-2xl font-bold mt-2 shadow-lg shadow-primary/20">
+                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.name} maxLength="120" onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full Name" />
+                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.phone} inputMode="numeric" maxLength="10" onChange={(e) => setForm({ ...form, phone: normalizePhoneInput(e.target.value) })} placeholder="Phone Number" />
+                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.notes} maxLength="1000" onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" />
+                <button onClick={saveClient} disabled={isSavingProfile} className="w-full bg-primary text-white py-4 rounded-2xl font-bold mt-2 shadow-lg shadow-primary/20 disabled:opacity-70">
                   {isSavingProfile ? "Saving..." : "Save Changes"}
                 </button>
               </div>

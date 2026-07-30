@@ -1,10 +1,20 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import api from "../api";
 import MainHeader from "../components/MainHeader";
+import TrashIcon from "../components/TrashIcon";
+import { useConfirm } from "../dialogs/ConfirmDialogProvider";
+import { clientService } from "../services/clientService";
+import {
+  clientValidationError,
+  duplicatePhoneError,
+  normalizePhoneInput,
+} from "../utils/validation";
+import { toast } from "../notifications/toastBus";
 
 function ClientsPage() {
+  const confirm = useConfirm();
+
   /* ---------------- STATE ---------------- */
   const [clients, setClients] = useState([]);
   const [allClients, setAllClients] = useState([]);
@@ -16,8 +26,9 @@ function ClientsPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
-  const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deletingClientId, setDeletingClientId] = useState("");
+  const lastDuplicatePhoneRef = useRef("");
 
   /* ======================================================
      FETCH CLIENTS
@@ -25,7 +36,7 @@ function ClientsPage() {
   const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get("/clients");
+      const res = await clientService.getClients();
       setClients(res.data || []);
       setAllClients(res.data || []);
     } catch (err) {
@@ -66,16 +77,26 @@ function ClientsPage() {
      ====================================================== */
   const addClient = async (e) => {
     e.preventDefault();
-    setError("");
 
-    if (!name || !phone) {
-      setError("Name & phone required");
+    const validationError = clientValidationError({ name, phone });
+    if (validationError) {
+      toast.warning(validationError);
+      return;
+    }
+
+    const duplicateError = duplicatePhoneError(phone, allClients);
+    if (duplicateError) {
+      toast.warning(duplicateError);
       return;
     }
 
     try {
       setSaving(true);
-      const res = await api.post("/clients", { name, phone, notes });
+      const res = await clientService.createClient({
+        name: name.trim(),
+        phone: normalizePhoneInput(phone),
+        notes: notes.trim(),
+      });
 
       setClients((prev) => [res.data, ...prev]);
       setAllClients((prev) => [res.data, ...prev]);
@@ -84,11 +105,56 @@ function ClientsPage() {
       setPhone("");
       setNotes("");
       setShowModal(false);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to add client");
+      toast.success("Client created successfully");
+    } catch {
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePhoneChange = (value) => {
+    const nextPhone = normalizePhoneInput(value);
+    const duplicateError = duplicatePhoneError(nextPhone, allClients);
+
+    setPhone(nextPhone);
+
+    if (duplicateError) {
+      if (lastDuplicatePhoneRef.current !== nextPhone) {
+        toast.warning(duplicateError);
+        lastDuplicatePhoneRef.current = nextPhone;
+      }
+    } else {
+      lastDuplicatePhoneRef.current = "";
+    }
+  };
+
+  const deleteClient = async (client) => {
+    const confirmed = await confirm({
+      title: "Delete client?",
+      message: `Delete ${client.name}? This will remove the client from the active list.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Keep",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    const previousClients = clients;
+    const previousAllClients = allClients;
+
+    try {
+      setDeletingClientId(client._id);
+      setClients((current) => current.filter((item) => item._id !== client._id));
+      setAllClients((current) => current.filter((item) => item._id !== client._id));
+      await clientService.deleteClient(client._id);
+      toast.success("Client deleted successfully");
+    } catch {
+      setClients(previousClients);
+      setAllClients(previousAllClients);
+    } finally {
+      setDeletingClientId("");
     }
   };
 
@@ -149,7 +215,7 @@ function ClientsPage() {
                   key={c._id}
                   className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group"
                 >
-                  <Link to={`/clients/${c._id}`} className="flex items-center gap-4">
+                  <Link to={`/clients/${c._id}`} className="flex items-center gap-4 pr-28 sm:pr-32">
                     
                     {/* Avatar */}
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-brandPink text-white flex items-center justify-center font-black text-sm flex-shrink-0 shadow-inner">
@@ -177,8 +243,8 @@ function ClientsPage() {
                     </div>
                   </Link>
 
-                  {/* Quick Actions (Call / WhatsApp) */}
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2">
+                  {/* Quick Actions (Call / WhatsApp / Delete) */}
+                  <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 sm:gap-2">
                     <a 
                       href={`https://wa.me/91${c.phone.replace(/\D/g, "")}`} 
                       target="_blank" 
@@ -195,6 +261,19 @@ function ClientsPage() {
                     >
                       📞
                     </a>
+                    <button
+                      type="button"
+                      disabled={deletingClientId === c._id}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        deleteClient(c);
+                      }}
+                      className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center text-sm shadow-sm active:scale-90 transition-transform disabled:opacity-60"
+                      aria-label={`Delete ${c.name}`}
+                    >
+                      {deletingClientId === c._id ? "..." : <TrashIcon />}
+                    </button>
                   </div>
                 </motion.div>
               ))}
@@ -205,7 +284,9 @@ function ClientsPage() {
 
       {/* FAB - Add Client (Pushed to bottom-28 so it sits above the BottomNav!) */}
       <button
-        onClick={() => setShowModal(true)}
+        onClick={() => {
+          setShowModal(true);
+        }}
         className="fixed bottom-28 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30 active:scale-90 transition-transform"
       >
         +
@@ -228,14 +309,13 @@ function ClientsPage() {
               <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
               <h2 className="text-xl font-black mb-6 text-gray-900">New Client</h2>
 
-              {error && <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-sm font-semibold mb-4">{error}</div>}
-
               <form onSubmit={addClient} className="space-y-4">
                 <input
                   className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/20"
                   placeholder="Full Name"
                   value={name}
                   autoFocus
+                  maxLength="120"
                   onChange={(e) => setName(e.target.value)}
                 />
 
@@ -244,14 +324,15 @@ function ClientsPage() {
                   placeholder="Phone Number"
                   value={phone}
                   inputMode="numeric"
-                  maxLength="15"
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                  maxLength="10"
+                  onChange={(e) => handlePhoneChange(e.target.value)}
                 />
 
                 <input
                   className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/20"
                   placeholder="Notes (optional)"
                   value={notes}
+                  maxLength="1000"
                   onChange={(e) => setNotes(e.target.value)}
                 />
 

@@ -1,95 +1,17 @@
-const { eq } = require("drizzle-orm");
-const { db } = require("../src/db/index.ts");
-const { users } = require("../src/db/schema.ts");
-const { env } = require("../src/config/env.ts");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const { asyncHandler } = require("../src/lib/asyncHandler.ts");
+const { authService } = require("../src/services/authService.ts");
 
-const JWT_SECRET = env.JWT_SECRET;
+exports.register = asyncHandler(async (req, res) => {
+  const result = await authService.register(req.body);
+  res.status(201).json(result);
+});
 
-// Register (one-time). You may remove or protect this route later.
-exports.register = async (req, res) => {
-  try {
-    const { email, password, name, role } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ message: "Email and password required" });
+exports.login = asyncHandler(async (req, res) => {
+  const result = await authService.login(req.body);
+  res.json(result);
+});
 
-    const normalizedEmail = email.toLowerCase();
-    const [existing] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, normalizedEmail))
-      .limit(1);
-
-    if (existing)
-      return res.status(400).json({ message: "User already exists" });
-
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(password, salt);
-
-    await db.insert(users).values({
-      email: normalizedEmail,
-      name: name || "Salon Owner",
-      passwordHash: hash,
-      role: role || "staff",
-    });
-
-    res.status(201).json({ message: "User created" });
-  } catch (err) {
-    console.error("Register error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ message: "Email and password required" });
-
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email.toLowerCase()))
-      .limit(1);
-
-    if (!user)
-      return res.status(400).json({ message: "Invalid email credentials" });
-
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok)
-      return res.status(400).json({ message: "Invalid password credentials" });
-
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "7d" },
-    );
-
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-    });
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-exports.me = async (req, res) => {
-  try {
-    // auth middleware already attached user to req.user
-    const { user } = req;
-    if (!user) return res.status(401).json({ message: "Not authenticated" });
-
-    res.json({ user });
-  } catch (err) {
-    console.error("Me error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+exports.me = asyncHandler(async (req, res) => {
+  if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+  res.json({ user: req.user });
+});

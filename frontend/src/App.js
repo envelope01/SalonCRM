@@ -21,6 +21,8 @@ import LoginPage from "./pages/LoginPage";
    ========================= */
 import BottomNav from "./components/BottomNav";
 import { getCurrentUser } from "./api";
+import { ConfirmDialogProvider } from "./dialogs/ConfirmDialogProvider";
+import { ToastProvider } from "./notifications/ToastProvider";
 
 /* =========================
    STYLES
@@ -50,20 +52,22 @@ function App() {
      ROUTER
      ========================= */
   return (
-    <Router>
-      {/* FIX 1: Removed 'h-screen overflow-hidden'. 
-        Replaced with 'min-h-screen bg-gray-50' to allow native mobile scrolling.
-      */}
-      <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
-        
-        {/* DESKTOP NAVBAR (Will be hidden on mobile via CSS inside Navbar usually) */}
-        
+    <ToastProvider>
+      <ConfirmDialogProvider>
+        <Router>
+          {/* FIX 1: Removed 'h-screen overflow-hidden'.
+            Replaced with 'min-h-screen bg-gray-50' to allow native mobile scrolling.
+          */}
+          <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
 
-        {/* FIX 2: Removed 'p-4' and 'overflow-hidden'. 
+        {/* DESKTOP NAVBAR (Will be hidden on mobile via CSS inside Navbar usually) */}
+
+
+        {/* FIX 2: Removed 'p-4' and 'overflow-hidden'.
           Our redesigned pages handle their own padding and scrolling now!
           Added 'pb-24 md:pb-0' to guarantee the BottomNav NEVER covers the very bottom content.
         */}
-        <main className="flex-1 w-full max-w-7xl mx-auto pb-24 md:pb-0">
+        <main className="flex-1 w-full max-w-3xl mx-auto pb-24 md:pb-0 md:border-x md:border-gray-100 md:shadow-sm">
           <Routes>
             {/* AUTH */}
             <Route
@@ -110,8 +114,10 @@ function App() {
 
         {/* MOBILE BOTTOM NAV */}
         {user && <BottomNav />}
-      </div>
-    </Router>
+          </div>
+        </Router>
+      </ConfirmDialogProvider>
+    </ToastProvider>
   );
 }
 

@@ -12,7 +12,10 @@ import {
   Legend,
   ArcElement,
 } from "chart.js";
-import api from "../api";
+import { expenseService } from "../services/expenseService";
+import { reportService } from "../services/reportService";
+import { expenseValidationError, parseMoney } from "../utils/validation";
+import { toast } from "../notifications/toastBus";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -33,6 +36,7 @@ function ReportsPage() {
   const [expensesList, setExpensesList] = useState([]);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
+  const [isSavingExpense, setIsSavingExpense] = useState(false);
   
   const [expenseForm, setExpenseForm] = useState({
     date: new Date().toISOString().slice(0, 10),
@@ -44,8 +48,8 @@ function ReportsPage() {
   const fetchData = useCallback(async (start, end) => {
     try {
       const [summaryRes, expRes] = await Promise.all([
-        api.get(`/reports/summary?from=${start}&to=${end}`),
-        api.get(`/expenses?from=${start}&to=${end}`)
+        reportService.getSummary({ from: start, to: end }),
+        expenseService.getExpenses({ from: start, to: end })
       ]);
       setSummary(summaryRes.data);
       const sorted = (expRes.data || []).sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -78,6 +82,36 @@ function ReportsPage() {
   useEffect(() => {
     applyPreset("year");
   }, [applyPreset]);
+
+  const saveExpense = async () => {
+    const validationError = expenseValidationError(expenseForm);
+    if (validationError) {
+      toast.warning(validationError);
+      return;
+    }
+
+    try {
+      setIsSavingExpense(true);
+      await expenseService.createExpense({
+        date: expenseForm.date,
+        category: expenseForm.category.trim(),
+        amount: parseMoney(expenseForm.amount),
+        notes: expenseForm.notes.trim(),
+      });
+      setShowAddExpenseModal(false);
+      setExpenseForm({
+        date: new Date().toISOString().slice(0, 10),
+        category: "",
+        amount: "",
+        notes: "",
+      });
+      fetchData(fromDate, toDate);
+      toast.success("Expense saved successfully");
+    } catch {
+    } finally {
+      setIsSavingExpense(false);
+    }
+  };
 
   // Chart Configs
   const barChartData = {
@@ -194,7 +228,9 @@ function ReportsPage() {
 
       {/* FAB */}
       <button
-        onClick={() => setShowAddExpenseModal(true)}
+        onClick={() => {
+          setShowAddExpenseModal(true);
+        }}
         className="fixed bottom-6 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30"
       >
         +
@@ -223,6 +259,8 @@ function ReportsPage() {
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold text-gray-400">₹</span>
                   <input 
                     type="number" 
+                    min="0"
+                    step="1"
                     placeholder="0.00" 
                     value={expenseForm.amount} // Using expenseForm here
                     className="w-full text-4xl font-black pl-6 py-3 focus:outline-none border-b-2 border-gray-100 focus:border-brandPink transition-colors"
@@ -234,6 +272,7 @@ function ReportsPage() {
                   {/* Date Input */}
                   <input 
                     type="date"
+                    required
                     value={expenseForm.date} // Using expenseForm here
                     className="bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-700 outline-none"
                     onChange={(e) => setExpenseForm(prev => ({ ...prev, date: e.target.value }))}
@@ -254,22 +293,21 @@ function ReportsPage() {
                 </div>
 
                 {/* Notes Input */}
-                <input 
+                <input
                   type="text"
                   placeholder="Notes (Optional)"
                   value={expenseForm.notes} // Using expenseForm here
+                  maxLength="1000"
                   className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm outline-none"
                   onChange={(e) => setExpenseForm(prev => ({ ...prev, notes: e.target.value }))}
                 />
 
                 <button 
-                  className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform"
-                  onClick={() => {
-                    console.log("Saving:", expenseForm);
-                    setShowAddExpenseModal(false);
-                  }}
+                  disabled={isSavingExpense}
+                  className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-70"
+                  onClick={saveExpense}
                 >
-                  Save Transaction
+                  {isSavingExpense ? "Saving..." : "Save Transaction"}
                 </button>
               </div>
             </motion.div>

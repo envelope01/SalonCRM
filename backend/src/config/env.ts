@@ -73,3 +73,29 @@ export const clientOrigins = env.CLIENT_URL
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+function isPrivateDevelopmentHost(hostname: string) {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.startsWith("192.168.") ||
+    hostname.startsWith("10.") ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)
+  );
+}
+
+export function isAllowedClientOrigin(origin: string) {
+  if (clientOrigins.includes(origin)) return true;
+
+  if (env.NODE_ENV !== "development") return false;
+
+  try {
+    const parsed = new URL(origin);
+    const isAllowedPort = parsed.port === "3000" || parsed.port === "5173";
+    const isAllowedProtocol = parsed.protocol === "http:";
+
+    return isAllowedProtocol && isAllowedPort && isPrivateDevelopmentHost(parsed.hostname);
+  } catch {
+    return false;
+  }
+}

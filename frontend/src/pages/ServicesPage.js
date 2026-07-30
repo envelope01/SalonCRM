@@ -1,16 +1,21 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import api from "../api";
 import MainHeader from "../components/MainHeader";
+import TrashIcon from "../components/TrashIcon";
+import { useConfirm } from "../dialogs/ConfirmDialogProvider";
+import { serviceService } from "../services/serviceService";
+import { parseMoney, serviceValidationError } from "../utils/validation";
+import { toast } from "../notifications/toastBus";
 
 /* ======================================================
    SERVICES PAGE (MOBILE REDESIGN)
    ====================================================== */
 function ServicesPage() {
+  const confirm = useConfirm();
+
   /* ---------------- STATE ---------------- */
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
 
@@ -22,7 +27,6 @@ function ServicesPage() {
   });
 
   const [editingId, setEditingId] = useState(null);
-  const [formError, setFormError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [showMobileForm, setShowMobileForm] = useState(false);
 
@@ -34,12 +38,10 @@ function ServicesPage() {
   const loadServices = async () => {
     try {
       setLoading(true);
-      setError("");
-      const res = await api.get("/services");
+      const res = await serviceService.getServices();
       setServices(res.data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load menu");
+    } catch {
+      setServices([]);
     } finally {
       setLoading(false);
     }
@@ -75,28 +77,32 @@ function ServicesPage() {
      ====================================================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormError("");
 
-    if (!formData.name.trim() || formData.price === "") {
-      setFormError("Name and Price are required");
+    const validationError = serviceValidationError(formData);
+    if (validationError) {
+      toast.warning(validationError);
       return;
     }
 
     try {
       setIsSaving(true);
-      const payload = { ...formData, price: Number(formData.price) };
+      const payload = {
+        name: formData.name.trim(),
+        category: formData.category.trim(),
+        price: parseMoney(formData.price),
+      };
 
       if (editingId) {
-        const res = await api.put(`/services/${editingId}`, payload);
+        const res = await serviceService.updateService(editingId, payload);
         setServices((prev) => prev.map((s) => (s._id === editingId ? res.data : s)));
       } else {
-        const res = await api.post("/services", payload);
+        const res = await serviceService.createService(payload);
         setServices((prev) => [res.data, ...prev]);
       }
 
       handleCancel();
-    } catch (err) {
-      setFormError("Failed to save service");
+      toast.success(editingId ? "Service updated successfully" : "Service created successfully");
+    } catch {
     } finally {
       setIsSaving(false);
     }
@@ -115,12 +121,19 @@ function ServicesPage() {
   const handleCancel = () => {
     setEditingId(null);
     setFormData({ name: "", category: "", price: "" });
-    setFormError("");
     setShowMobileForm(false);
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) {
+    const confirmed = await confirm({
+      title: "Delete service?",
+      message: `Delete "${name}" from the service menu?`,
+      confirmLabel: "Delete",
+      cancelLabel: "Keep",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -129,11 +142,11 @@ function ServicesPage() {
     setServices((prev) => prev.filter((s) => s._id !== id));
 
     try {
-      await api.delete(`/services/${id}`);
-    } catch (err) {
+      await serviceService.deleteService(id);
+      toast.success("Service deleted successfully");
+    } catch {
       // Revert if failed
       setServices(previousServices);
-      alert("Failed to delete service.");
     }
   };
 
@@ -181,9 +194,7 @@ function ServicesPage() {
       {/* MAIN CONTENT */}
       <main className="p-4 flex-1">
         {loading && <div className="text-center text-brandPink font-bold mt-10 animate-pulse">Loading menu...</div>}
-        {error && <div className="text-center text-rose-500 font-bold mt-10">{error}</div>}
-
-        {!loading && !error && (
+        {!loading && (
           <motion.div layout className="space-y-3">
             <AnimatePresence>
               {filteredServices.map((s) => (
@@ -222,7 +233,7 @@ function ServicesPage() {
                         className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500 shadow-sm border border-rose-100 active:scale-90 transition-transform font-bold"
                         onClick={() => handleDelete(s._id, s.name)}
                       >
-                        🗑️
+                        <TrashIcon />
                       </button>
                     </div>
 
@@ -271,8 +282,6 @@ function ServicesPage() {
                 {editingId ? "Edit Service" : "New Service"}
               </h2>
 
-              {formError && <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-sm font-semibold mb-4">{formError}</div>}
-
               <form onSubmit={handleSubmit} className="space-y-5">
                 
                 {/* Price Input (Hero Style) */}
@@ -280,6 +289,8 @@ function ServicesPage() {
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold text-gray-400">₹</span>
                   <input 
                     type="number" 
+                    min="0"
+                    step="1"
                     placeholder="0.00" 
                     value={formData.price}
                     className="w-full text-4xl font-black pl-6 py-3 focus:outline-none border-b-2 border-gray-100 focus:border-brandPink transition-colors"
@@ -293,6 +304,7 @@ function ServicesPage() {
                     placeholder="Service Name (e.g. Haircut)"
                     className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-700 outline-none"
                     value={formData.name}
+                    maxLength="120"
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
 
@@ -303,6 +315,7 @@ function ServicesPage() {
                     placeholder="Category (e.g. Hair, Skin)"
                     className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-700 outline-none"
                     value={formData.category}
+                    maxLength="80"
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   />
                   <datalist id="category-options">

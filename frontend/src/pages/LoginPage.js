@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import api, { saveAuth } from "../api";
+import { saveAuth } from "../api";
+import { authService } from "../services/authService";
+import { loginValidationError } from "../utils/validation";
+import { toast } from "../notifications/toastBus";
 
 function LoginPage({ setUser }) {
   const navigate = useNavigate();
@@ -12,30 +15,29 @@ function LoginPage({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState("");
 
   /* ======================
      SUBMIT HANDLER
      ====================== */
   const submit = async (e) => {
     e.preventDefault();
-    setErr("");
 
-    if (!email || !password) {
-      setErr("Please enter both email and password");
+    const validationError = loginValidationError({ email, password });
+    if (validationError) {
+      toast.warning(validationError);
       return;
     }
 
     try {
       setLoading(true);
-      const res = await api.post("/auth/login", { email, password });
+      const res = await authService.login({ email: email.trim(), password });
 
       saveAuth(res.data.token, res.data.user);
       setUser(res.data.user);
+      toast.success("Logged in successfully");
 
       navigate("/");
-    } catch (error) {
-      setErr(error.response?.data?.message || "Invalid login credentials");
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -78,12 +80,6 @@ function LoginPage({ setUser }) {
           <p className="text-sm text-gray-400 font-medium mt-1">Sign in to your dashboard</p>
         </div>
 
-        {err && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-rose-50 text-rose-600 rounded-2xl p-4 mb-6 text-sm font-bold text-center border border-rose-100">
-            {err}
-          </motion.div>
-        )}
-
         <form onSubmit={submit} className="space-y-5">
           {/* Email Input */}
           <div>
@@ -93,6 +89,7 @@ function LoginPage({ setUser }) {
               className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/30 transition-all placeholder:font-medium placeholder:text-gray-400"
               placeholder="Email Address"
               value={email}
+              maxLength="254"
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -105,6 +102,7 @@ function LoginPage({ setUser }) {
               className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/30 transition-all placeholder:font-medium placeholder:text-gray-400"
               placeholder="Password"
               value={password}
+              maxLength="128"
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
