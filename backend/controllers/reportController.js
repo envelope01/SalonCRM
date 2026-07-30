@@ -1,6 +1,7 @@
 // backend/controllers/reportController.js
-const Visit = require("../models/Visit");
-const Expense = require("../models/Expense");
+const { and, desc, gte, lte, sql } = require("drizzle-orm");
+const { db } = require("../src/db/index.ts");
+const { expenses, visits } = require("../src/db/schema.ts");
 
 exports.getSummary = async (req, res) => {
   try {
@@ -21,55 +22,62 @@ exports.getSummary = async (req, res) => {
       endDate.setHours(23, 59, 59, 999); // include full end day
     }
 
-    // --- Totals & counts ---
-    const earningsAgg = await Visit.aggregate([
-      { $match: { visitDate: { $gte: startDate, $lte: endDate } } },
-      { $group: { _id: null, totalEarnings: { $sum: "$totalAmount" }, totalVisits: { $sum: 1 } } }
-    ]);
-    const totalEarnings = (earningsAgg[0] && earningsAgg[0].totalEarnings) || 0;
-    const totalVisits = (earningsAgg[0] && earningsAgg[0].totalVisits) || 0;
+    const visitDateFilter = and(gte(visits.visitDate, startDate), lte(visits.visitDate, endDate));
+    const expenseDateFilter = and(gte(expenses.date, startDate), lte(expenses.date, endDate));
 
-    const expensesAgg = await Expense.aggregate([
-      { $match: { date: { $gte: startDate, $lte: endDate } } },
-      { $group: { _id: null, totalExpenses: { $sum: "$amount" } } }
-    ]);
-    const totalExpenses = (expensesAgg[0] && expensesAgg[0].totalExpenses) || 0;
+    // --- Totals & counts ---
+    const [earningsTotals] = await db
+      .select({
+        totalEarnings: sql`cast(coalesce(sum(${visits.totalAmount}), 0) as double precision)`,
+        totalVisits: sql`cast(count(*) as integer)`,
+      })
+      .from(visits)
+      .where(visitDateFilter);
+
+    const totalEarnings = earningsTotals.totalEarnings || 0;
+    const totalVisits = earningsTotals.totalVisits || 0;
+
+    const [expenseTotals] = await db
+      .select({
+        totalExpenses: sql`cast(coalesce(sum(${expenses.amount}), 0) as double precision)`,
+      })
+      .from(expenses)
+      .where(expenseDateFilter);
+
+    const totalExpenses = expenseTotals.totalExpenses || 0;
 
     // --- Earnings by day ---
-    const earningsByDay = await Visit.aggregate([
-      { $match: { visitDate: { $gte: startDate, $lte: endDate } } },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$visitDate" } },
-          earnings: { $sum: "$totalAmount" },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]);
+    const earningsByDay = await db
+      .select({
+        _id: sql`to_char(date_trunc('day', ${visits.visitDate}), 'YYYY-MM-DD')`,
+        earnings: sql`cast(coalesce(sum(${visits.totalAmount}), 0) as double precision)`,
+      })
+      .from(visits)
+      .where(visitDateFilter)
+      .groupBy(sql`date_trunc('day', ${visits.visitDate})`)
+      .orderBy(sql`date_trunc('day', ${visits.visitDate})`);
 
     // --- Expenses by day ---
-    const expensesByDay = await Expense.aggregate([
-      { $match: { date: { $gte: startDate, $lte: endDate } } },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-          expenses: { $sum: "$amount" },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]);
+    const expensesByDay = await db
+      .select({
+        _id: sql`to_char(date_trunc('day', ${expenses.date}), 'YYYY-MM-DD')`,
+        expenses: sql`cast(coalesce(sum(${expenses.amount}), 0) as double precision)`,
+      })
+      .from(expenses)
+      .where(expenseDateFilter)
+      .groupBy(sql`date_trunc('day', ${expenses.date})`)
+      .orderBy(sql`date_trunc('day', ${expenses.date})`);
 
     // --- Expenses by category ---
-    const expensesByCategory = await Expense.aggregate([
-      { $match: { date: { $gte: startDate, $lte: endDate } } },
-      {
-        $group: {
-          _id: "$category",
-          total: { $sum: "$amount" },
-        },
-      },
-      { $sort: { total: -1 } },
-    ]);
+    const expensesByCategory = await db
+      .select({
+        _id: expenses.category,
+        total: sql`cast(coalesce(sum(${expenses.amount}), 0) as double precision)`,
+      })
+      .from(expenses)
+      .where(expenseDateFilter)
+      .groupBy(expenses.category)
+      .orderBy(desc(sql`cast(coalesce(sum(${expenses.amount}), 0) as double precision)`));
 
     // Build a contiguous list of dates between startDate and endDate (YYYY-MM-DD)
     const dayLabels = [];

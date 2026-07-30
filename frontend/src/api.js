@@ -3,7 +3,11 @@ import axios from "axios";
 /* =========================================================
    API CONFIGURATION
    ========================================================= */
-const API_BASE_URL = "https://nblcrm-backend.onrender.com/api";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
+if (!API_BASE_URL) {
+  throw new Error("REACT_APP_API_BASE_URL is required");
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,

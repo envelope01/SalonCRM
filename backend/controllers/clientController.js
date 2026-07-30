@@ -1,4 +1,7 @@
-const Client = require("../models/Client");
+const { asc, and, eq, ilike, or } = require("drizzle-orm");
+const { db } = require("../src/db/index.ts");
+const { clients } = require("../src/db/schema.ts");
+const { formatClient } = require("../src/db/serializers.ts");
 
 // CREATE
 exports.createClient = async (req, res) => {
@@ -9,13 +12,13 @@ exports.createClient = async (req, res) => {
       return res.status(400).json({ message: "Name and phone are required" });
     }
 
-    const client = await Client.create({
+    const [client] = await db.insert(clients).values({
       name: name.trim(),
       phone: phone.trim(),
       notes,
-    });
+    }).returning();
 
-    res.status(201).json(client);
+    res.status(201).json(formatClient(client));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -25,10 +28,13 @@ exports.createClient = async (req, res) => {
 // READ – all clients
 exports.getClients = async (req, res) => {
   try {
-    const clients = await Client.find({ isActive: true })
-      .sort({ name: 1 });
+    const rows = await db
+      .select()
+      .from(clients)
+      .where(eq(clients.isActive, true))
+      .orderBy(asc(clients.name));
 
-    res.json(clients);
+    res.json(rows.map(formatClient));
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -37,13 +43,17 @@ exports.getClients = async (req, res) => {
 // READ – single client
 exports.getClientById = async (req, res) => {
   try {
-    const client = await Client.findById(req.params.id);
+    const [client] = await db
+      .select()
+      .from(clients)
+      .where(eq(clients.id, req.params.id))
+      .limit(1);
 
     if (!client) {
       return res.status(404).json({ message: "Client not found" });
     }
 
-    res.json(client);
+    res.json(formatClient(client));
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -55,14 +65,17 @@ exports.searchClients = async (req, res) => {
     const { q } = req.query;
     if (!q) return res.json([]);
 
-    const regex = new RegExp(q, "i");
+    const term = `%${q}%`;
+    const rows = await db
+      .select()
+      .from(clients)
+      .where(and(
+        eq(clients.isActive, true),
+        or(ilike(clients.name, term), ilike(clients.phone, term))
+      ))
+      .limit(10);
 
-    const clients = await Client.find({
-      isActive: true,
-      $or: [{ name: regex }, { phone: regex }],
-    }).limit(10);
-
-    res.json(clients);
+    res.json(rows.map(formatClient));
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -83,17 +96,17 @@ exports.updateClient = async (req, res) => {
       }
     });
 
-    const client = await Client.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true, runValidators: true }
-    );
+    const [client] = await db
+      .update(clients)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(clients.id, req.params.id))
+      .returning();
 
     if (!client) {
       return res.status(404).json({ message: "Client not found" });
     }
 
-    res.json(client);
+    res.json(formatClient(client));
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -102,11 +115,11 @@ exports.updateClient = async (req, res) => {
 // DELETE (soft delete)
 exports.deleteClient = async (req, res) => {
   try {
-    const client = await Client.findByIdAndUpdate(
-      req.params.id,
-      { isActive: false },
-      { new: true }
-    );
+    const [client] = await db
+      .update(clients)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(clients.id, req.params.id))
+      .returning();
 
     if (!client) {
       return res.status(404).json({ message: "Client not found" });
