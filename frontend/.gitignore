@@ -1,7 +1,0 @@
-# local build output
-build
-
-# local secrets
-.env
-.env.*
-!.env.example

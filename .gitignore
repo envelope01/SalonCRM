@@ -6,8 +6,9 @@ node_modules
 # builds
 build
 coverage
+dist
 
-# env
+# environment files and secrets
 .env
 .env.*
 !.env.example
@@ -20,3 +21,4 @@ yarn-error.log*
 
 # system
 .DS_Store
+Thumbs.db
