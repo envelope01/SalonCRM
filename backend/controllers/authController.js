@@ -1,11 +1,11 @@
 const { eq } = require("drizzle-orm");
 const { db } = require("../src/db/index.ts");
 const { users } = require("../src/db/schema.ts");
-const { env } = require("../src/config/env.ts");
+const { config } = require("../src/config/index.ts");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = env.JWT_SECRET;
+const JWT_SECRET = config.secrets.jwtSecret;
 
 // Register (one-time). You may remove or protect this route later.
 exports.register = async (req, res) => {

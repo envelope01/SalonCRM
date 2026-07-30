@@ -2,6 +2,14 @@
 
 This project uses environment-specific files so local development and production deployments do not require code changes.
 
+The backend follows a config/secrets separation pattern in `backend/src/config`:
+
+- `config.app`: non-sensitive runtime configuration such as environment, port, and allowed CORS origins.
+- `config.secrets`: sensitive values such as `DATABASE_URL` and `JWT_SECRET`.
+- `config.database`: derived database connection settings, including local-vs-production SSL behavior.
+
+The app fails early at startup when required secrets are missing.
+
 ## Backend
 
 Local development values live in `backend/.env.development`.

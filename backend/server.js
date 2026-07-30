@@ -1,7 +1,7 @@
 // server.js
 const express = require("express");
 const cors = require("cors");
-const { clientOrigins, env } = require("./src/config/env.ts");
+const { config } = require("./src/config/index.ts");
 const { pool } = require("./src/db/index.ts");
 
 const app = express();
@@ -9,7 +9,7 @@ const app = express();
 // Middlewares
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || clientOrigins.includes(origin)) {
+    if (!origin || config.app.clientOrigins.includes(origin)) {
       return callback(null, true);
     }
 
@@ -46,7 +46,7 @@ app.get("/", (req, res) => {
 });
 
 // Connect to PostgreSQL and start server
-const PORT = env.PORT;
+const PORT = config.app.port;
 
 pool
   .query("select 1")
@@ -54,8 +54,8 @@ pool
     console.log("PostgreSQL connected");
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      console.log(`Environment: ${env.NODE_ENV}`);
-      console.log(`Allowed client origin(s): ${clientOrigins.join(", ")}`);
+      console.log(`Environment: ${config.app.env}`);
+      console.log(`Allowed client origin(s): ${config.app.clientOrigins.join(", ")}`);
       console.log(`test http://localhost:${PORT}/api/clients`);
     });
   })

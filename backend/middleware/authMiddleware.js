@@ -3,8 +3,8 @@ const { eq } = require("drizzle-orm");
 const { db } = require("../src/db/index.ts");
 const { users } = require("../src/db/schema.ts");
 const { formatAuthUser } = require("../src/db/serializers.ts");
-const { env } = require("../src/config/env.ts");
-const JWT_SECRET = env.JWT_SECRET;
+const { config } = require("../src/config/index.ts");
+const JWT_SECRET = config.secrets.jwtSecret;
 
 exports.authMiddleware = async (req, res, next) => {
   try {
