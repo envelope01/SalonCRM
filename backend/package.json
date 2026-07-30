@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production tsx server.js",
+    "build": "npm run db:migrate:prod",
     "dev": "cross-env NODE_ENV=development nodemon --exec tsx server.js",
     "db:generate": "cross-env NODE_ENV=development drizzle-kit generate",
     "db:migrate": "cross-env NODE_ENV=development drizzle-kit migrate",
@@ -14,8 +15,7 @@
     "db:push:prod:force": "cross-env NODE_ENV=production drizzle-kit push --verbose --force",
     "db:check:tables": "tsx scripts/check-pg-tables.ts",
     "render:build": "npm run db:migrate:prod",
-    "render:start": "npm start",
-    "migrate:mongo-to-pg": "cross-env NODE_ENV=development tsx scripts/migrate-mongo-to-pg.ts"
+    "render:start": "npm run db:migrate:prod && npm start"
   },
   "keywords": [],
   "author": "",
@@ -29,8 +29,6 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongodb": "^7.0.0",
-    "mongoose": "^9.0.1",
     "pg": "^8.22.0",
     "tsx": "^4.23.1"
   },
