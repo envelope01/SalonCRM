@@ -1,6 +1,10 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const JWT_SECRET = process.env.JWT_SECRET || "change_this_super_secret";
+const { eq } = require("drizzle-orm");
+const { db } = require("../src/db/index.ts");
+const { users } = require("../src/db/schema.ts");
+const { formatAuthUser } = require("../src/db/serializers.ts");
+const { env } = require("../src/config/env.ts");
+const JWT_SECRET = env.JWT_SECRET;
 
 exports.authMiddleware = async (req, res, next) => {
   try {
@@ -11,10 +15,20 @@ exports.authMiddleware = async (req, res, next) => {
     const payload = jwt.verify(token, JWT_SECRET);
     if (!payload || !payload.userId) return res.status(401).json({ message: "Invalid token" });
 
-    const user = await User.findById(payload.userId).select("-passwordHash");
+    const [user] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        name: users.name,
+        role: users.role,
+      })
+      .from(users)
+      .where(eq(users.id, payload.userId))
+      .limit(1);
+
     if (!user) return res.status(401).json({ message: "User not found" });
 
-    req.user = { id: user._id, email: user.email, name: user.name, role: user.role };
+    req.user = formatAuthUser(user);
     next();
   } catch (err) {
     console.error("Auth middleware error:", err);

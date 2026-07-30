@@ -1,8 +1,11 @@
-const User = require("../models/User");
+const { eq } = require("drizzle-orm");
+const { db } = require("../src/db/index.ts");
+const { users } = require("../src/db/schema.ts");
+const { env } = require("../src/config/env.ts");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "change_this_super_secret"; // set in .env
+const JWT_SECRET = env.JWT_SECRET;
 
 // Register (one-time). You may remove or protect this route later.
 exports.register = async (req, res) => {
@@ -11,20 +14,25 @@ exports.register = async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ message: "Email and password required" });
 
-    const existing = await User.findOne({ email: email.toLowerCase() });
+    const normalizedEmail = email.toLowerCase();
+    const [existing] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, normalizedEmail))
+      .limit(1);
+
     if (existing)
       return res.status(400).json({ message: "User already exists" });
 
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
 
-    const user = new User({
-      email: email.toLowerCase(),
+    await db.insert(users).values({
+      email: normalizedEmail,
       name: name || "Salon Owner",
       passwordHash: hash,
       role: role || "staff",
     });
-    await user.save();
 
     res.status(201).json({ message: "User created" });
   } catch (err) {
@@ -39,7 +47,12 @@ exports.login = async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ message: "Email and password required" });
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase()))
+      .limit(1);
+
     if (!user)
       return res.status(400).json({ message: "Invalid email credentials" });
 
@@ -56,7 +69,7 @@ exports.login = async (req, res) => {
     res.json({
       token,
       user: {
-        id: user._id,
+        id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,

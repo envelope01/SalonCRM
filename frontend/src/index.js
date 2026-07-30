@@ -1,11 +1,8 @@
 /* =========================================================
    GLOBAL STYLES & LIBRARIES
    ========================================================= */
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
-
+// tailwind base styles
 import "./index.css";
-import "./App.css";
 
 /* =========================================================
    REACT CORE

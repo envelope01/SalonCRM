@@ -1,90 +1,82 @@
-/* =========================================================
-   GLOBAL FOUNDATION
-   Layout, tokens & resets only
-   ========================================================= */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* =========================================================
-   DESIGN TOKENS
-   ========================================================= */
-:root {
-  /* Brand palette */
-  --primary-color: #540863;
-  --accent-color: #92487a;
+/* custom design tokens and utilities live in components/utilities layers below */
 
-  /* Neutrals */
-  --background-light: #f8fafc;
-  --text-dark: #111827;
-  --text-muted: #6b7280;
-  --border-color: rgba(0, 0, 0, 0.08);
+@layer base {
 
-  /* Design tokens */
-  --card-radius: 10px;
-  --transition-speed: 0.2s;
-
-  /* Base font stack */
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-
-/* =========================================================
-   RESET & BOX MODEL
-   ========================================================= */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-
-/* =========================================================
-   VIEWPORT OWNERSHIP
-   ========================================================= */
-html,
-body,
-#root {
-  min-height: 100dvh;
-  width: 100%;
-}
-
-
-/* =========================================================
-   BODY BASE STYLES
-   ========================================================= */
-body {
-  margin: 0;
-  background: var(--background-light);
-  color: var(--text-dark);
-
-  /* Responsive base typography */
-  font-size: clamp(14px, 1.2vw, 16px);
-  line-height: 1.5;
-
-  /* Text rendering */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  /* Scroll behavior */
-  overflow-x: hidden; /* prevent horizontal scroll bugs */
-  overflow-y: hidden; /* desktop default */
-}
-
-
-/* Enable vertical scrolling on tablet & mobile */
-@media (max-width: 1024px) {
+  /* base resets or overrides if needed */
   body {
-    overflow-y: auto;
+    /* body overflow will be controlled by layout classes; default hidden to enforce non-scrolling root */
+    @apply bg-gray-50 text-gray-900;
   }
 }
 
+@layer components {
+  .page-container {
+    @apply h-full min-h-0 flex flex-col gap-3 pb-20 md:pb-0;
+  }
 
-/* =========================================================
-   SMALL GLOBAL UTILITIES
-   ========================================================= */
-.mt-1-5 {
-  margin-top: 1.5rem;
+  .page-grid {
+    @apply grid gap-3 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .app-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-3;
+  }
+
+  .internal-scroll {
+    @apply overflow-y-auto scrollbar-thin;
+  }
+
+  .btn-primary {
+    @apply bg-brandPink text-white rounded-lg px-3 py-1.5 font-medium hover:bg-pink-600 transition-colors min-h-[44px];
+  }
+
+  .pb-safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .top-header {
+    @apply flex items-center justify-between p-4 bg-white border-b border-gray-100 md:hidden;
+  }
+
+  .back-button {
+    @apply flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors;
+  }
 }
 
-.mb-1-5 {
-  margin-bottom: 1.5rem;
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    /* background-color: #d63384; */
+    border-radius: 10px;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply py-2 px-4 rounded-lg text-white font-medium transition-all active:scale-95;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 18px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #7b2c61, #d63384);
+    border: none;
+    border-radius: 50px;
+  }
+
+  .btn-primary:hover {
+    @apply opacity-90 shadow-lg;
+    background: linear-gradient(135deg, #8b3c71, #e64394);
+    /* Slightly lighter on hover */
+
+
+  }
 }

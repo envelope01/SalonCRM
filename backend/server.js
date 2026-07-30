@@ -1,13 +1,22 @@
 // server.js
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+const { clientOrigins, env } = require("./src/config/env.ts");
+const { pool } = require("./src/db/index.ts");
 
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || clientOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 const reportRoutes = require("./routes/reportRoutes");
@@ -36,25 +45,21 @@ app.get("/", (req, res) => {
   res.send("Salon CRM API is running version 1.0");
 });
 
-// Connect to MongoDB and start server
-const PORT = process.env.PORT || 5000;
+// Connect to PostgreSQL and start server
+const PORT = env.PORT;
 
-const MONGO_URI =
-  process.env.ActiveDb === "Dev"
-    ? process.env.MONGO_URI_DEV
-    : process.env.MONGO_URI;
-
-mongoose
-  .connect(MONGO_URI)
+pool
+  .query("select 1")
   .then(() => {
-    console.log("MongoDB connected");
-    console.log("Connected to:", mongoose.connection.name);
-
+    console.log("PostgreSQL connected");
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      console.log(`Environment: ${env.NODE_ENV}`);
+      console.log(`Allowed client origin(s): ${clientOrigins.join(", ")}`);
       console.log(`test http://localhost:${PORT}/api/clients`);
     });
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
+    console.error("PostgreSQL connection error:", err);
+    process.exit(1);
   });

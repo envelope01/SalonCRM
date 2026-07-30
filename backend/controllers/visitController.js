@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const Visit = require("../models/Visit");
-const Client = require("../models/Client");
-const Service = require("../models/Service");
+const { asc, desc, eq, inArray } = require("drizzle-orm");
+const { db } = require("../src/db/index.ts");
+const { clients, services: servicesTable, visits, visitServices } = require("../src/db/schema.ts");
+const { formatVisit } = require("../src/db/serializers.ts");
 
 /* =========================
    CREATE VISIT
@@ -18,30 +18,37 @@ exports.createVisit = async (req, res) => {
       return res.status(400).json({ message: "At least one service is required" });
     }
 
-    const clientExists = await Client.exists({ _id: clientId });
+    const [clientExists] = await db
+      .select({ id: clients.id })
+      .from(clients)
+      .where(eq(clients.id, clientId))
+      .limit(1);
+
     if (!clientExists) {
       return res.status(404).json({ message: "Client not found" });
     }
 
-    const serviceIds = services.map(s => new mongoose.Types.ObjectId(s.serviceId));
+    const serviceIds = services.map(s => s.serviceId);
 
-    const dbServices = await Service.find({
-      _id: { $in: serviceIds },
-      isActive: true
-    });
+    const dbServices = await db
+      .select()
+      .from(servicesTable)
+      .where(inArray(servicesTable.id, serviceIds));
 
-    if (dbServices.length !== serviceIds.length) {
+    const activeDbServices = dbServices.filter(service => service.isActive);
+
+    if (activeDbServices.length !== serviceIds.length) {
       return res.status(400).json({ message: "Invalid or inactive service" });
     }
 
     const serviceMap = {};
-    dbServices.forEach(s => {
-      serviceMap[s._id.toString()] = s;
+    activeDbServices.forEach(s => {
+      serviceMap[s.id] = s;
     });
 
     let totalAmount = 0;
 
-    const visitServices = services.map(s => {
+    const visitLineItems = services.map(s => {
       const svc = serviceMap[s.serviceId];
 
       const basePrice = svc.price;
@@ -51,7 +58,7 @@ exports.createVisit = async (req, res) => {
       totalAmount += chargedPrice;
 
       return {
-        service: svc._id,
+        serviceId: svc.id,
         name: svc.name,
         basePrice,
         chargedPrice,
@@ -59,15 +66,30 @@ exports.createVisit = async (req, res) => {
       };
     });
 
-    const visit = await Visit.create({
-      client: clientId,
-      visitDate: visitDate || new Date(),
-      services: visitServices,
-      totalAmount,
-      notes
+    const { visit, lineItems } = await db.transaction(async (tx) => {
+      const [visit] = await tx.insert(visits).values({
+        clientId,
+        visitDate: visitDate ? new Date(visitDate) : new Date(),
+        totalAmount,
+        notes
+      }).returning();
+
+      const lineItems = await tx.insert(visitServices).values(
+        visitLineItems.map((service, index) => ({
+          visitId: visit.id,
+          serviceId: service.serviceId,
+          position: index,
+          name: service.name,
+          basePrice: service.basePrice,
+          chargedPrice: service.chargedPrice,
+          lineTotal: service.lineTotal
+        }))
+      ).returning();
+
+      return { visit, lineItems };
     });
 
-    res.status(201).json(visit);
+    res.status(201).json(formatVisit(visit, lineItems));
   } catch (err) {
     console.error("Create visit error:", err);
     res.status(500).json({ message: "Server error" });
@@ -79,10 +101,29 @@ exports.createVisit = async (req, res) => {
 ========================= */
 exports.getClientVisits = async (req, res) => {
   try {
-    const visits = await Visit.find({ client: req.params.clientId })
-      .sort({ visitDate: -1 });
+    const rows = await db
+      .select()
+      .from(visits)
+      .where(eq(visits.clientId, req.params.clientId))
+      .orderBy(desc(visits.visitDate));
 
-    res.json(visits);
+    if (rows.length === 0) {
+      return res.json([]);
+    }
+
+    const lineItems = await db
+      .select()
+      .from(visitServices)
+      .where(inArray(visitServices.visitId, rows.map(visit => visit.id)))
+      .orderBy(asc(visitServices.position));
+
+    const servicesByVisitId = lineItems.reduce((acc, lineItem) => {
+      if (!acc[lineItem.visitId]) acc[lineItem.visitId] = [];
+      acc[lineItem.visitId].push(lineItem);
+      return acc;
+    }, {});
+
+    res.json(rows.map(visit => formatVisit(visit, servicesByVisitId[visit.id] || [])));
   } catch {
     res.status(500).json({ message: "Server error" });
   }
@@ -93,7 +134,10 @@ exports.getClientVisits = async (req, res) => {
 ========================= */
 exports.deleteVisit = async (req, res) => {
   try {
-    const visit = await Visit.findByIdAndDelete(req.params.visitId);
+    const [visit] = await db
+      .delete(visits)
+      .where(eq(visits.id, req.params.visitId))
+      .returning();
     if (!visit) {
       return res.status(404).json({ message: "Visit not found" });
     }

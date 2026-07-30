@@ -1,4 +1,7 @@
-const Service = require("../models/Service");
+const { asc, eq } = require("drizzle-orm");
+const { db } = require("../src/db/index.ts");
+const { services } = require("../src/db/schema.ts");
+const { formatService } = require("../src/db/serializers.ts");
 
 // Add new service
 exports.addService = async (req, res) => {
@@ -11,21 +14,25 @@ exports.addService = async (req, res) => {
         .json({ message: "Name and price are required" });
     }
 
-    const existing = await Service.findOne({ name: name.trim() });
+    const [existing] = await db
+      .select()
+      .from(services)
+      .where(eq(services.name, name.trim()))
+      .limit(1);
+
     if (existing) {
       return res
         .status(400)
         .json({ message: "Service with this name already exists" });
     }
 
-    const service = new Service({
+    const [service] = await db.insert(services).values({
       name: name.trim(),
-      category,
-      price,
-    });
+      category: category || "",
+      price: Number(price),
+    }).returning();
 
-    await service.save();
-    res.status(201).json(service);
+    res.status(201).json(formatService(service));
   } catch (error) {
     console.error("Error adding service:", error);
     res.status(500).json({ message: "Server error" });
@@ -35,8 +42,12 @@ exports.addService = async (req, res) => {
 // Get all active services
 exports.getServices = async (req, res) => {
   try {
-    const services = await Service.find().sort({ name: 1 });
-    res.json(services);
+    const rows = await db
+      .select()
+      .from(services)
+      .orderBy(asc(services.name));
+
+    res.json(rows.map(formatService));
   } catch (error) {
     console.error("Error fetching services:", error);
     res.status(500).json({ message: "Server error" });
@@ -49,18 +60,29 @@ exports.updateService = async (req, res) => {
     const { id } = req.params;
     const { name, category, price, isActive } = req.body;
 
-    const service = await Service.findById(id);
+    const [service] = await db
+      .select()
+      .from(services)
+      .where(eq(services.id, id))
+      .limit(1);
+
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
 
-    if (name !== undefined) service.name = name.trim();
-    if (category !== undefined) service.category = category;
-    if (price !== undefined) service.price = price;
-    if (isActive !== undefined) service.isActive = isActive;
+    const updates = { updatedAt: new Date() };
+    if (name !== undefined) updates.name = name.trim();
+    if (category !== undefined) updates.category = category;
+    if (price !== undefined) updates.price = Number(price);
+    if (isActive !== undefined) updates.isActive = isActive;
 
-    await service.save();
-    res.json(service);
+    const [updated] = await db
+      .update(services)
+      .set(updates)
+      .where(eq(services.id, id))
+      .returning();
+
+    res.json(formatService(updated));
   } catch (error) {
     console.error("Error updating service:", error);
     res.status(500).json({ message: "Server error" });
@@ -72,7 +94,10 @@ exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const service = await Service.findByIdAndDelete(id);
+    const [service] = await db
+      .delete(services)
+      .where(eq(services.id, id))
+      .returning();
 
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
@@ -80,7 +105,7 @@ exports.deleteService = async (req, res) => {
 
     res.json({
       message: "Service deleted successfully",
-      service,
+      service: formatService(service),
     });
 
   } catch (error) {
@@ -94,17 +119,25 @@ exports.toggleServiceStatus = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const service = await Service.findById(id);
+    const [service] = await db
+      .select()
+      .from(services)
+      .where(eq(services.id, id))
+      .limit(1);
+
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
 
-    service.isActive = !service.isActive; // toggle
-    await service.save();
+    const [updated] = await db
+      .update(services)
+      .set({ isActive: !service.isActive, updatedAt: new Date() })
+      .where(eq(services.id, id))
+      .returning();
 
     res.json({
-      message: `Service ${service.isActive ? "activated" : "deactivated"} successfully`,
-      service,
+      message: `Service ${updated.isActive ? "activated" : "deactivated"} successfully`,
+      service: formatService(updated),
     });
   } catch (error) {
     console.error("Error toggling service:", error);

@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Bar, Doughnut } from "react-chartjs-2";
+import { motion, AnimatePresence } from "framer-motion";
+import MainHeader from "../components/MainHeader";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,17 +13,8 @@ import {
   ArcElement,
 } from "chart.js";
 import api from "../api";
-import "./reportsPage.css";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 function ReportsPage() {
   const [fromDate, setFromDate] = useState("");
@@ -38,496 +31,265 @@ function ReportsPage() {
   });
 
   const [expensesList, setExpensesList] = useState([]);
-
-  // MODAL STATE
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [fullHistory, setFullHistory] = useState([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-
-  // ADD FORM STATE
+  const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
+  
   const [expenseForm, setExpenseForm] = useState({
-    date: new Date().toISOString().slice(0, 10), // Default to today
+    date: new Date().toISOString().slice(0, 10),
     category: "",
     amount: "",
     notes: "",
   });
-  const [isSaving, setIsSaving] = useState(false);
 
-  const getToday = () => new Date().toISOString().slice(0, 10);
-
-  /* --- DATA FETCHING --- */
-  const fetchData = async (start, end) => {
+  const fetchData = useCallback(async (start, end) => {
     try {
-      const summaryRes = await api.get(
-        `/reports/summary?from=${start}&to=${end}`
-      );
+      const [summaryRes, expRes] = await Promise.all([
+        api.get(`/reports/summary?from=${start}&to=${end}`),
+        api.get(`/expenses?from=${start}&to=${end}`)
+      ]);
       setSummary(summaryRes.data);
-
-      const expRes = await api.get(`/expenses?from=${start}&to=${end}`);
-
-      // FIX: Robust Sorting (Date DESC -> Then ID DESC)
-      const sortedExpenses = (expRes.data || []).sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-
-        // 1. Different dates? Sort by date (Newest first)
-        if (dateB.getTime() !== dateA.getTime()) {
-          return dateB - dateA;
-        }
-
-        // 2. Same date? Sort by ID (Newest entry first)
-        // MongoDB IDs are strings that contain timestamps
-        return (b._id || "").localeCompare(a._id || "");
-      });
-
-      setExpensesList(sortedExpenses);
+      const sorted = (expRes.data || []).sort((a, b) => new Date(b.date) - new Date(a.date));
+      setExpensesList(sorted);
     } catch (err) {
-      console.error("Error fetching report data", err);
+      console.error("Fetch error", err);
     }
-  };
+  }, []);
 
-  const applyPreset = (type) => {
+  const applyPreset = useCallback((type) => {
     setPeriod(type);
     const now = new Date();
-    let start, end;
+    let start, end = new Date().toISOString().slice(0, 10);
 
-    if (type === "today") {
-      start = end = getToday();
-    } else if (type === "week") {
-      const day = now.getDay();
-      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-      const monday = new Date(now.setDate(diff));
-      start = monday.toISOString().slice(0, 10);
-      end = getToday();
+    if (type === "today") start = end;
+    else if (type === "week") {
+      const diff = now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1);
+      start = new Date(now.setDate(diff)).toISOString().slice(0, 10);
+    } else if (type === "month") {
+      start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
     } else {
-      start = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString()
-        .slice(0, 10);
-      end = getToday();
+      start = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
     }
+
     setFromDate(start);
     setToDate(end);
     fetchData(start, end);
-  };
+  }, [fetchData]);
 
   useEffect(() => {
-    applyPreset("month");
-    // eslint-disable-next-line
-  }, []);
+    applyPreset("year");
+  }, [applyPreset]);
 
-  /* --- VIEW ALL HISTORY --- */
-  const handleViewAllHistory = async () => {
-    setShowHistoryModal(true);
-    setLoadingHistory(true);
-    try {
-      const res = await api.get("/expenses");
-
-      // FIX: Apply same robust sorting here
-      const sortedFull = (res.data || []).sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        if (dateB.getTime() !== dateA.getTime()) return dateB - dateA;
-        return (b._id || "").localeCompare(a._id || "");
-      });
-
-      setFullHistory(sortedFull);
-    } catch (err) {
-      alert("Failed to load full history");
-    } finally {
-      setLoadingHistory(false);
-    }
-  };
-  /* --- SAVE EXPENSE --- */
-  const handleSaveExpense = async (e) => {
-    e.preventDefault();
-    if (!expenseForm.category || !expenseForm.amount) {
-      alert("Please fill Category and Amount");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      await api.post("/expenses", {
-        date: expenseForm.date,
-        category: expenseForm.category,
-        amount: Number(expenseForm.amount),
-        notes: expenseForm.notes,
-      });
-
-      // Keep date same (user might want to add multiple for same day), reset others
-      setExpenseForm((prev) => ({
-        ...prev,
-        category: "",
-        amount: "",
-        notes: "",
-      }));
-
-      fetchData(fromDate, toDate);
-    } catch (err) {
-      alert("Failed to save expense");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  /* --- CHART DATA --- */
+  // Chart Configs
   const barChartData = {
     labels: summary.byDay?.map((d) => new Date(d.date).getDate()) || [],
     datasets: [
-      {
-        label: "Income",
-        data: summary.byDay?.map((d) => d.earnings) || [],
-        backgroundColor: "#198754",
-        borderRadius: 4,
-      },
-      {
-        label: "Expense",
-        data: summary.byDay?.map((d) => d.expenses) || [],
-        backgroundColor: "#dc3545",
-        borderRadius: 4,
-      },
+      { label: "In", data: summary.byDay?.map((d) => d.earnings) || [], backgroundColor: "#10b981", borderRadius: 6 },
+      { label: "Out", data: summary.byDay?.map((d) => d.expenses) || [], backgroundColor: "#ef4444", borderRadius: 6 },
     ],
   };
 
   const doughnutData = {
     labels: summary.expensesByCategory?.map((c) => c.category) || [],
-    datasets: [
-      {
-        data: summary.expensesByCategory?.map((c) => c.total) || [],
-        backgroundColor: [
-          "#ff6384",
-          "#36a2eb",
-          "#ffce56",
-          "#4bc0c0",
-          "#9966ff",
-        ],
-        borderWidth: 0,
-      },
-    ],
+    datasets: [{
+      data: summary.expensesByCategory?.map((c) => c.total) || [],
+      backgroundColor: ["#d63384", "#60a5fa", "#fbbf24", "#34d399", "#a78bfa"],
+      borderWidth: 2,
+    }],
   };
 
   return (
-    <div className="reports-container">
-      {/* 1. HEADER */}
-      <div className="page-header">
-        <div className="header-title">
-          <h2>Finance Dashboard</h2>
-          <p>Profit & Loss Overview</p>
-        </div>
-        <div className="controls-wrapper">
-          <button
-            className={`preset-btn ${period === "today" ? "active" : ""}`}
-            onClick={() => applyPreset("today")}
-          >
-            Today
-          </button>
-          <button
-            className={`preset-btn ${period === "week" ? "active" : ""}`}
-            onClick={() => applyPreset("week")}
-          >
-            Week
-          </button>
-          <button
-            className={`preset-btn ${period === "month" ? "active" : ""}`}
-            onClick={() => applyPreset("month")}
-          >
-            Month
-          </button>
-          <div className="date-range">
-            <input
-              type="date"
-              className="date-input"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-            />
-            <span>-</span>
-            <input
-              type="date"
-              className="date-input"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-            />
+    <div className="flex flex-col min-h-screen bg-gray-50 pb-20">
+{/* HEADER */}
+      <MainHeader title="Reports">
+        <div className="flex bg-gray-100 p-1 rounded-2xl mt-4">
+          {["today", "week", "month", "year"].map((p) => (
             <button
-              className="go-btn"
-              onClick={() => fetchData(fromDate, toDate)}
+              key={p}
+              onClick={() => applyPreset(p)}
+              className={`flex-1 py-2.5 text-xs font-bold rounded-xl capitalize transition-all ${
+                period === p ? "bg-white shadow text-brandPink" : "text-gray-500"
+              }`}
             >
-              Go
+              {p}
             </button>
-          </div>
+          ))}
         </div>
-      </div>
+        
+        {/* Manual Date Indicators */}
+        <div className="mt-3 flex justify-between items-center text-[10px] text-gray-400 font-medium px-1">
+          <span>From: {fromDate}</span>
+          <span>To: {toDate}</span>
+        </div>
+      </MainHeader>
 
-      {/* 2. KPI CARDS */}
-      <div className="kpi-row">
-        <div className="kpi-card green">
-          <span className="kpi-title">Total Income</span>
-          <div className="kpi-value">
-            ₹{summary.totalEarnings.toLocaleString()}
+      <main className="p-4 space-y-4">
+        {/* KPI SECTION */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
+            <p className="text-gray-400 text-[10px] font-bold uppercase">Income</p>
+            <p className="text-lg font-black text-emerald-600">₹{summary.totalEarnings.toLocaleString()}</p>
+          </div>
+          <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
+            <p className="text-gray-400 text-[10px] font-bold uppercase">Expenses</p>
+            <p className="text-lg font-black text-rose-500">₹{summary.totalExpenses.toLocaleString()}</p>
           </div>
         </div>
-        <div className="kpi-card red">
-          <span className="kpi-title">Total Expenses</span>
-          <div className="kpi-value">
-            ₹{summary.totalExpenses.toLocaleString()}
-          </div>
-        </div>
-        <div className="kpi-card blue">
-          <span className="kpi-title">Net Profit</span>
-          <div
-            className="kpi-value"
-            style={{ color: summary.netProfit >= 0 ? "#333" : "#dc3545" }}
+
+        {/* 3D FLIP CHART */}
+        <div className="relative h-72 perspective-1000">
+          <motion.div
+            className="w-full h-full relative preserve-3d"
+            animate={{ rotateY: isFlipped ? 180 : 0 }}
+            transition={{ duration: 0.6, type: "spring", stiffness: 300, damping: 20 }}
+            onClick={() => setIsFlipped(!isFlipped)}
           >
-            ₹{summary.netProfit.toLocaleString()}
-          </div>
-        </div>
-      </div>
-
-      {/* 3. CONTENT GRID */}
-      <div className="content-grid">
-        {/* LEFT PANEL */}
-        <div className="left-panel">
-          <div className="left-row">
-            {/* FLIP CHART CARD (RIGHT) */}
-            <div className={`flip-card ${isFlipped ? "flipped" : ""}`}>
-              <div className="flip-inner">
-                {/* FRONT: BAR CHART */}
-                <div className="flip-front">
-                  <button
-                    className="flip-icon-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsFlipped(true);
-                    }}
-                    title="View breakdown"
-                  >
-                    ⟳
-                  </button>
-
-                  <h4 className="section-title">Income vs Expenses</h4>
-                  <div className="chart-plot">
-                    <Bar
-                      data={barChartData}
-                      options={{ maintainAspectRatio: false, responsive: true }}
-                    />
-                  </div>
-                </div>
-
-                {/* BACK: DOUGHNUT */}
-                <div className="flip-back">
-                  <button
-                    className="flip-icon-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsFlipped(false);
-                    }}
-                    title="Back to chart"
-                  >
-                    ⟲
-                  </button>
-
-                  <h4 className="section-title">Expense Breakdown</h4>
-                  <div className="chart-plot">
-                    <Doughnut
-                      data={doughnutData}
-                      options={{
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: "bottom" } },
-                      }}
-                    />
-                  </div>
-                </div>
+            {/* FRONT: TREND */}
+            <div className="absolute inset-0 backface-hidden bg-white p-5 rounded-[2.5rem] shadow-sm border border-gray-100">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-xs font-bold text-gray-800">Income vs Expense</span>
+                <span className="text-[9px] bg-brandPink/10 text-brandPink px-2 py-1 rounded-full uppercase">Tap to Flip</span>
+              </div>
+              <div className="h-48">
+                <Bar data={barChartData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
               </div>
             </div>
-          </div>
 
-          <div className="expense-list-card">
-            <div className="table-header">
-              <span>Recent Expenses</span>
-              <button
-                className="view-history-btn"
-                onClick={handleViewAllHistory}
-              >
-                View All History →
-              </button>
+            {/* BACK: PIE CHART */}
+            <div 
+              className="absolute inset-0 backface-hidden bg-white p-5 rounded-[2.5rem] shadow-sm border border-gray-100 rotate-y-180"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-xs font-bold text-gray-800">Expense Breakdown</span>
+                <span className="text-[9px] bg-brandPink/10 text-brandPink px-2 py-1 rounded-full uppercase">Tap to Flip</span>
+              </div>
+              <div className="h-48">
+                <Doughnut data={doughnutData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 } } } } }} />
+              </div>
             </div>
-            <table className="simple-table">
-              <tbody>
-                {/* Now expensesList is definitely sorted new to old */}
-                {expensesList.slice(0, 1).map((e) => (
-                  <tr key={e._id}>
-                    <td style={{ width: "20%" }}>
-                      {new Date(e.date).toLocaleDateString()}
-                    </td>
-                    <td style={{ width: "30%" }}>
-                      <strong>{e.category}</strong>
-                    </td>
-                    <td style={{ color: "#888" }}>{e.notes || "-"}</td>
-                    <td className="amount-red">₹{e.amount}</td>
-                  </tr>
-                ))}
-                {expensesList.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan="4"
-                      style={{
-                        textAlign: "center",
-                        padding: 20,
-                        color: "#999",
-                      }}
-                    >
-                      No expenses in this period
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          </motion.div>
         </div>
 
-        {/* RIGHT PANEL: ADD EXPENSE */}
-        <div className="right-panel">
-          {/* FIX 2: HEADER WITH DATE PICKER */}
-          <div className="add-expense-header">
-            <h4> Add Expense</h4>
-            <input
-              type="date"
-              className="header-date-input"
-              value={expenseForm.date}
-              onChange={(e) =>
-                setExpenseForm({ ...expenseForm, date: e.target.value })
-              }
-            />
+        {/* RECENT LIST */}
+        <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-gray-800">Activity</h3>
+            <button onClick={() => setShowHistoryModal(true)} className="text-brandPink text-xs font-bold">See All</button>
           </div>
-
-          <form onSubmit={handleSaveExpense}>
-            {/* Date input removed from here, moved to header */}
-
-            <div className="form-group">
-              <label className="form-label">Category</label>
-              <select
-                className="modern-select"
-                value={expenseForm.category}
-                onChange={(e) =>
-                  setExpenseForm({ ...expenseForm, category: e.target.value })
-                }
-              >
-                <option value="">Select...</option>
-                <option value="Rent">Rent</option>
-                <option value="Electricity">Electricity</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Tea/Snacks">Tea/Snacks</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Amount (₹)</label>
-              <input
-                type="number"
-                className="modern-input"
-                placeholder="0"
-                value={expenseForm.amount}
-                onChange={(e) =>
-                  setExpenseForm({ ...expenseForm, amount: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Notes</label>
-              <input
-                type="text"
-                className="modern-input"
-                placeholder="Details..."
-                value={expenseForm.notes}
-                onChange={(e) =>
-                  setExpenseForm({ ...expenseForm, notes: e.target.value })
-                }
-              />
-            </div>
-
-            <button type="submit" className="save-btn" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Expense"}
-            </button>
-          </form>
+          <div className="space-y-4">
+            {expensesList.slice(0, 4).map((e) => (
+              <div key={e._id} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center text-sm">💸</div>
+                  <div>
+                    <p className="font-bold text-gray-900 text-sm">{e.category}</p>
+                    <p className="text-[10px] text-gray-400">{new Date(e.date).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <p className="font-bold text-rose-500 text-sm">-₹{e.amount}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </main>
 
-      {/* MODAL */}
-      {showHistoryModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>All Expense History</h3>
-              <button
-                className="close-modal-btn"
-                onClick={() => setShowHistoryModal(false)}
-              >
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              {loadingHistory ? (
-                <div className="modal-loading">Loading full history...</div>
-              ) : (
-                <table className="simple-table">
-                  <thead
-                    style={{ position: "sticky", top: 0, background: "#fff" }}
+      {/* FAB */}
+      <button
+        onClick={() => setShowAddExpenseModal(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30"
+      >
+        +
+      </button>
+
+{/* ADD EXPENSE SHEET */}
+      <AnimatePresence>
+        {showAddExpenseModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 z-50 flex items-end"
+            onClick={() => setShowAddExpenseModal(false)}
+          >
+            <motion.div 
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="bg-white w-full rounded-t-[2.5rem] p-8 pb-12"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
+              <h2 className="text-xl font-black mb-6 text-gray-900">Add Expense</h2>
+              
+              <div className="space-y-5">
+                {/* Amount Input */}
+                <div className="relative">
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 text-2xl font-bold text-gray-400">₹</span>
+                  <input 
+                    type="number" 
+                    placeholder="0.00" 
+                    value={expenseForm.amount} // Using expenseForm here
+                    className="w-full text-4xl font-black pl-6 py-3 focus:outline-none border-b-2 border-gray-100 focus:border-brandPink transition-colors"
+                    onChange={(e) => setExpenseForm(prev => ({ ...prev, amount: e.target.value }))}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Date Input */}
+                  <input 
+                    type="date"
+                    value={expenseForm.date} // Using expenseForm here
+                    className="bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-700 outline-none"
+                    onChange={(e) => setExpenseForm(prev => ({ ...prev, date: e.target.value }))}
+                  />
+                  
+                  {/* Category Select */}
+                  <select 
+                    value={expenseForm.category} // Using expenseForm here
+                    className="bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-700 outline-none appearance-none"
+                    onChange={(e) => setExpenseForm(prev => ({ ...prev, category: e.target.value }))}
                   >
-                    <tr>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "10px 20px",
-                          color: "#888",
-                        }}
-                      >
-                        Date
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "10px 20px",
-                          color: "#888",
-                        }}
-                      >
-                        Category
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "10px 20px",
-                          color: "#888",
-                        }}
-                      >
-                        Notes
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "right",
-                          padding: "10px 20px",
-                          color: "#888",
-                        }}
-                      >
-                        Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fullHistory.map((e) => (
-                      <tr key={e._id}>
-                        <td>{new Date(e.date).toLocaleDateString()}</td>
-                        <td>{e.category}</td>
-                        <td style={{ color: "#888" }}>{e.notes}</td>
-                        <td className="amount-red">₹{e.amount}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                    <option value="">Category</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Supplies">Supplies</option>
+                    <option value="Staff">Staff</option>
+                  </select>
+                </div>
+
+                {/* Notes Input */}
+                <input 
+                  type="text"
+                  placeholder="Notes (Optional)"
+                  value={expenseForm.notes} // Using expenseForm here
+                  className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm outline-none"
+                  onChange={(e) => setExpenseForm(prev => ({ ...prev, notes: e.target.value }))}
+                />
+
+                <button 
+                  className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform"
+                  onClick={() => {
+                    console.log("Saving:", expenseForm);
+                    setShowAddExpenseModal(false);
+                  }}
+                >
+                  Save Transaction
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* HISTORY MODAL (Simple implementation for the warning) */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 bg-white z-[60] p-6 overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold">All History</h2>
+            <button onClick={() => setShowHistoryModal(false)} className="text-2xl">×</button>
           </div>
+          {expensesList.map(e => (
+            <div key={e._id} className="border-b py-3 flex justify-between">
+              <span>{e.category}</span>
+              <span className="font-bold">₹{e.amount}</span>
+            </div>
+          ))}
         </div>
       )}
     </div>

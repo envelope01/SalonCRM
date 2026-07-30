@@ -4,8 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "cross-env NODE_ENV=production tsx server.js",
+    "dev": "cross-env NODE_ENV=development nodemon --exec tsx server.js",
+    "db:generate": "cross-env NODE_ENV=development drizzle-kit generate",
+    "db:migrate": "cross-env NODE_ENV=development drizzle-kit migrate",
+    "db:migrate:prod": "cross-env NODE_ENV=production drizzle-kit migrate",
+    "db:push:prod": "cross-env NODE_ENV=production drizzle-kit push",
+    "render:build": "npm run db:migrate:prod",
+    "render:start": "npm start",
+    "migrate:mongo-to-pg": "cross-env NODE_ENV=development tsx scripts/migrate-mongo-to-pg.ts"
   },
   "keywords": [],
   "author": "",
@@ -15,13 +22,21 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.0.0",
-    "mongoose": "^9.0.1"
+    "mongoose": "^9.0.1",
+    "pg": "^8.22.0",
+    "tsx": "^4.23.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "@types/node": "^26.1.2",
+    "@types/pg": "^8.20.0",
+    "cross-env": "^10.1.0",
+    "drizzle-kit": "^0.31.10",
+    "nodemon": "^3.1.11",
+    "typescript": "^7.0.2"
   }
 }
