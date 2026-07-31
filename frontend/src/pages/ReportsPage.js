@@ -231,7 +231,7 @@ function ReportsPage() {
         onClick={() => {
           setShowAddExpenseModal(true);
         }}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30"
+        className="fixed bottom-28 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30 active:scale-90 transition-transform"
       >
         +
       </button>
