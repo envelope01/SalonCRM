@@ -20,3 +20,17 @@ exports.authMiddleware = async (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 };
+
+exports.requireRoles = (...allowedRoles) => {
+  const allowed = new Set(allowedRoles);
+
+  return (req, res, next) => {
+    const role = req.user?.role;
+
+    if (!role || !allowed.has(role)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    next();
+  };
+};

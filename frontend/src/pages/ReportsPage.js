@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Bar, Doughnut } from "react-chartjs-2";
 import { motion, AnimatePresence } from "framer-motion";
 import MainHeader from "../components/MainHeader";
+import TrashIcon from "../components/TrashIcon";
+import { useConfirm } from "../dialogs/ConfirmDialogProvider";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,6 +22,7 @@ import { toast } from "../notifications/toastBus";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 function ReportsPage() {
+  const confirm = useConfirm();
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [period, setPeriod] = useState("month");
@@ -37,6 +40,7 @@ function ReportsPage() {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
   const [isSavingExpense, setIsSavingExpense] = useState(false);
+  const [deletingExpenseId, setDeletingExpenseId] = useState("");
   
   const [expenseForm, setExpenseForm] = useState({
     date: new Date().toISOString().slice(0, 10),
@@ -80,7 +84,7 @@ function ReportsPage() {
   }, [fetchData]);
 
   useEffect(() => {
-    applyPreset("year");
+    applyPreset("today");
   }, [applyPreset]);
 
   const saveExpense = async () => {
@@ -110,6 +114,30 @@ function ReportsPage() {
     } catch {
     } finally {
       setIsSavingExpense(false);
+    }
+  };
+
+  const deleteExpense = async (expense) => {
+    const confirmed = await confirm({
+      title: "Delete expense?",
+      message: `Delete ${expense.category} expense of ₹${expense.amount}?`,
+      confirmLabel: "Delete",
+      cancelLabel: "Keep",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingExpenseId(expense._id);
+      await expenseService.deleteExpense(expense._id);
+      await fetchData(fromDate, toDate);
+      toast.success("Expense deleted successfully");
+    } catch {
+    } finally {
+      setDeletingExpenseId("");
     }
   };
 
@@ -158,7 +186,7 @@ function ReportsPage() {
 
       <main className="p-4 space-y-4">
         {/* KPI SECTION */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
             <p className="text-gray-400 text-[10px] font-bold uppercase">Income</p>
             <p className="text-lg font-black text-emerald-600">₹{summary.totalEarnings.toLocaleString()}</p>
@@ -166,6 +194,12 @@ function ReportsPage() {
           <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
             <p className="text-gray-400 text-[10px] font-bold uppercase">Expenses</p>
             <p className="text-lg font-black text-rose-500">₹{summary.totalExpenses.toLocaleString()}</p>
+          </div>
+          <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm col-span-2 sm:col-span-1">
+            <p className="text-gray-400 text-[10px] font-bold uppercase">Profit</p>
+            <p className={`text-lg font-black ${summary.netProfit >= 0 ? "text-emerald-600" : "text-rose-500"}`}>
+              &#8377;{summary.netProfit.toLocaleString()}
+            </p>
           </div>
         </div>
 
@@ -211,15 +245,29 @@ function ReportsPage() {
           </div>
           <div className="space-y-4">
             {expensesList.slice(0, 4).map((e) => (
-              <div key={e._id} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div key={e._id} className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center text-sm">💸</div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-bold text-gray-900 text-sm">{e.category}</p>
                     <p className="text-[10px] text-gray-400">{new Date(e.date).toLocaleDateString()}</p>
+                    {e.notes && (
+                      <p className="text-xs text-gray-500 mt-1 truncate">{e.notes}</p>
+                    )}
                   </div>
                 </div>
-                <p className="font-bold text-rose-500 text-sm">-₹{e.amount}</p>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <p className="font-bold text-rose-500 text-sm">-&#8377;{e.amount}</p>
+                  <button
+                    type="button"
+                    disabled={deletingExpenseId === e._id}
+                    onClick={() => deleteExpense(e)}
+                    className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-100 active:scale-90 transition-transform disabled:opacity-60"
+                    aria-label={`Delete ${e.category} expense`}
+                  >
+                    {deletingExpenseId === e._id ? "..." : <TrashIcon />}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -286,7 +334,7 @@ function ReportsPage() {
                   >
                     <option value="">Category</option>
                     <option value="Rent">Rent</option>
-                    <option value="Marketing">Marketing</option>
+                    <option value="Light Bill">Light Bill</option>
                     <option value="Supplies">Supplies</option>
                     <option value="Staff">Staff</option>
                   </select>
@@ -323,9 +371,26 @@ function ReportsPage() {
             <button onClick={() => setShowHistoryModal(false)} className="text-2xl">×</button>
           </div>
           {expensesList.map(e => (
-            <div key={e._id} className="border-b py-3 flex justify-between">
-              <span>{e.category}</span>
-              <span className="font-bold">₹{e.amount}</span>
+            <div key={e._id} className="border-b py-3 flex justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-bold text-gray-900">{e.category}</p>
+                <p className="text-xs text-gray-400">{new Date(e.date).toLocaleDateString()}</p>
+                {e.notes && (
+                  <p className="text-sm text-gray-600 mt-1 break-words">{e.notes}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="font-bold text-rose-500">&#8377;{e.amount}</span>
+                <button
+                  type="button"
+                  disabled={deletingExpenseId === e._id}
+                  onClick={() => deleteExpense(e)}
+                  className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-100 active:scale-90 transition-transform disabled:opacity-60"
+                  aria-label={`Delete ${e.category} expense`}
+                >
+                  {deletingExpenseId === e._id ? "..." : <TrashIcon />}
+                </button>
+              </div>
             </div>
           ))}
         </div>

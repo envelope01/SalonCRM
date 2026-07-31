@@ -14,6 +14,7 @@ import ClientsPage from "./pages/ClientsPage";
 import ClientDetailPage from "./pages/ClientDetailPage";
 import ServicesPage from "./pages/ServicesPage";
 import ReportsPage from "./pages/ReportsPage";
+import SettingsPage from "./pages/SettingsPage";
 import LoginPage from "./pages/LoginPage";
 
 /* =========================
@@ -28,6 +29,12 @@ import { ToastProvider } from "./notifications/ToastProvider";
    STYLES
    ========================= */
 import "./index.css"; 
+
+const privilegedRoles = new Set(["owner", "admin", "dev"]);
+
+function hasPrivilegedAccess(user) {
+  return privilegedRoles.has(user?.role);
+}
 
 function App() {
   /* =========================
@@ -106,14 +113,29 @@ function App() {
             <Route
               path="/reports"
               element={
-                user ? <ReportsPage /> : <Navigate to="/login" replace />
+                user ? (
+                  hasPrivilegedAccess(user) ? <ReportsPage /> : <Navigate to="/" replace />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
+
+            <Route
+              path="/settings"
+              element={
+                user ? (
+                  hasPrivilegedAccess(user) ? <SettingsPage /> : <Navigate to="/" replace />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
               }
             />
           </Routes>
         </main>
 
         {/* MOBILE BOTTOM NAV */}
-        {user && <BottomNav />}
+        {user && <BottomNav user={user} />}
           </div>
         </Router>
       </ConfirmDialogProvider>

@@ -8,6 +8,20 @@
       "when": 1785314523862,
       "tag": "0000_simple_star_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785480000000,
+      "tag": "0001_app_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785480001000,
+      "tag": "0002_add_admin_role",
+      "breakpoints": true
     }
   ]
 }

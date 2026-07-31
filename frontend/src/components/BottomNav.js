@@ -2,19 +2,23 @@ import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 
-const BottomNav = () => {
+const privilegedRoles = new Set(["owner", "admin", "dev"]);
+
+const BottomNav = ({ user }) => {
   const location = useLocation();
+  const canViewReportsAndSettings = privilegedRoles.has(user?.role);
 
   // Show bottom nav only on main pages
-  const isMainPage = ["/", "/services", "/reports"].includes(location.pathname);
+  const isMainPage = ["/", "/services", "/reports", "/settings"].includes(location.pathname);
 
   if (!isMainPage) return null;
 
   const navItems = [
     { to: "/", label: "Clients", icon: "👥" },
-    { to: "/services", label: "Services", icon: "💅" }, // Switched icon to match salon vibe
-    { to: "/reports", label: "Reports", icon: "📊" },
-  ];
+    { to: "/services", label: "Services", icon: "💅" },
+    canViewReportsAndSettings ? { to: "/reports", label: "Reports", icon: "📊" } : null,
+    canViewReportsAndSettings ? { to: "/settings", label: "Settings", icon: "⚙" } : null,
+  ].filter(Boolean);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 flex justify-center">

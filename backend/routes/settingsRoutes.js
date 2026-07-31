@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const reportController = require("../controllers/reportController");
+const settingsController = require("../controllers/settingsController");
 const { authMiddleware, requireRoles } = require("../middleware/authMiddleware");
 
 router.use(authMiddleware, requireRoles("owner", "admin", "dev"));
 
-// Summary earnings: /api/reports/summary?from=YYYY-MM-DD&to=YYYY-MM-DD
-router.get("/summary", reportController.getSummary);
+router.get("/", settingsController.getSettings);
+router.put("/", settingsController.updateSettings);
 
 module.exports = router;

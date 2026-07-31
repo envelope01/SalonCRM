@@ -72,6 +72,9 @@ app.use("/api/visits", visitRoutes);
 const expenseRoutes = require("./routes/expenseRoutes");
 app.use("/api/expenses", expenseRoutes);
 
+const settingsRoutes = require("./routes/settingsRoutes");
+app.use("/api/settings", settingsRoutes);
+
 // Simple health check route
 app.get("/", (req, res) => {
   res.send("Salon CRM API is running version 1.0");

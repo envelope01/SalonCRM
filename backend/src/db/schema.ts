@@ -14,7 +14,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const userRole = pgEnum("user_role", ["owner", "staff", "dev"]);
+export const userRole = pgEnum("user_role", ["owner", "staff", "admin", "dev"]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -83,6 +83,12 @@ export const expenses = pgTable(
   }),
 );
 
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull().default(""),
+  ...timestamps,
+});
+
 export const visits = pgTable(
   "visits",
   {
@@ -138,6 +144,7 @@ export const servicesRelations = relations(services, ({ many }) => ({
 }));
 
 export const expensesRelations = relations(expenses, () => ({}));
+export const appSettingsRelations = relations(appSettings, () => ({}));
 
 export const visitsRelations = relations(visits, ({ one, many }) => ({
   client: one(clients, {
@@ -166,6 +173,8 @@ export type Service = InferSelectModel<typeof services>;
 export type NewService = InferInsertModel<typeof services>;
 export type Expense = InferSelectModel<typeof expenses>;
 export type NewExpense = InferInsertModel<typeof expenses>;
+export type AppSetting = InferSelectModel<typeof appSettings>;
+export type NewAppSetting = InferInsertModel<typeof appSettings>;
 export type Visit = InferSelectModel<typeof visits>;
 export type NewVisit = InferInsertModel<typeof visits>;
 export type VisitService = InferSelectModel<typeof visitServices>;

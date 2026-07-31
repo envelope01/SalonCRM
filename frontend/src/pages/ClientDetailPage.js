@@ -6,7 +6,9 @@ import TrashIcon from "../components/TrashIcon";
 import { useConfirm } from "../dialogs/ConfirmDialogProvider";
 import { clientService } from "../services/clientService";
 import { serviceService } from "../services/serviceService";
+import { settingsService } from "../services/settingsService";
 import { visitService } from "../services/visitService";
+import { appConfig } from "../config";
 import {
   clientValidationError,
   isValidDate,
@@ -27,6 +29,14 @@ function ClientDetailPage() {
   const [client, setClient] = useState(null);
   const [services, setServices] = useState([]);
   const [visits, setVisits] = useState([]);
+  const [billSettings, setBillSettings] = useState({
+    paymentUrl: appConfig.paymentUrl,
+    instagramUrl: appConfig.instagramUrl,
+    googleReviewUrl: appConfig.googleReviewUrl,
+    billMessageTemplate: appConfig.billMessageTemplate,
+    billServiceLineTemplate: appConfig.billServiceLineTemplate,
+    billDiscountLineTemplate: appConfig.billDiscountLineTemplate,
+  });
 
   // Edit Client State
   const [showEditSheet, setShowEditSheet] = useState(false);
@@ -37,6 +47,7 @@ function ClientDetailPage() {
   // New Bill State
   const [visitDate, setVisitDate] = useState("");
   const [visitServices, setVisitServices] = useState([]);
+  const [discountPercent, setDiscountPercent] = useState("");
   const [visitNotes, setVisitNotes] = useState("");
   const [showServicePicker, setShowServicePicker] = useState(false);
   const [isSavingVisit, setIsSavingVisit] = useState(false);
@@ -51,10 +62,11 @@ function ClientDetailPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [clientRes, serviceRes, visitRes] = await Promise.all([
+        const [clientRes, serviceRes, visitRes, settingsRes] = await Promise.all([
           clientService.getClientById(id),
           serviceService.getServices(),
           visitService.getClientVisits(id),
+          settingsService.getSettings({ suppressGlobalErrorToast: true }).catch(() => ({ data: null })),
         ]);
 
         setClient(clientRes.data);
@@ -65,6 +77,9 @@ function ClientDetailPage() {
         });
         setServices(serviceRes.data.filter((s) => s.isActive));
         setVisits(visitRes.data);
+        if (settingsRes.data) {
+          setBillSettings((current) => ({ ...current, ...settingsRes.data }));
+        }
         setVisitDate(new Date().toISOString().slice(0, 10));
       } catch (err) {
         console.error("Failed to load client data", err);
@@ -148,7 +163,112 @@ function ClientDetailPage() {
     [visitServices]
   );
 
-  const addVisit = async () => {
+  const normalizedDiscountPercent = useMemo(() => {
+    const parsed = parseMoney(discountPercent);
+    if (parsed === null) return 0;
+    return Math.min(Math.max(parsed, 0), 100);
+  }, [discountPercent]);
+
+  const discountAmount = useMemo(
+    () => Math.round((currentTotal * normalizedDiscountPercent / 100) * 100) / 100,
+    [currentTotal, normalizedDiscountPercent]
+  );
+
+  const discountedTotal = useMemo(
+    () => Math.max(0, Math.round((currentTotal - discountAmount) * 100) / 100),
+    [currentTotal, discountAmount]
+  );
+
+  const discountedVisitServices = useMemo(() => {
+    if (!visitServices.length) return [];
+    if (!normalizedDiscountPercent) return visitServices;
+
+    const factor = (100 - normalizedDiscountPercent) / 100;
+    let runningTotal = 0;
+
+    return visitServices.map((service, index) => {
+      const isLast = index === visitServices.length - 1;
+      const chargedPrice = isLast
+        ? Math.max(0, Math.round((discountedTotal - runningTotal) * 100) / 100)
+        : Math.max(0, Math.round((service.chargedPrice * factor) * 100) / 100);
+
+      runningTotal += chargedPrice;
+      return { ...service, chargedPrice };
+    });
+  }, [visitServices, normalizedDiscountPercent, discountedTotal]);
+
+  const formatMoney = (amount) => {
+    return Number(amount || 0).toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const handleDiscountChange = (value) => {
+    const amount = parseMoney(value);
+    if (value === "") {
+      setDiscountPercent("");
+      return;
+    }
+
+    if (amount === null) {
+      return;
+    }
+
+    setDiscountPercent(String(Math.min(amount, 100)));
+  };
+
+  const fillTemplate = (template, values) => {
+    return Object.entries(values).reduce(
+      (message, [key, value]) => message.replaceAll(`{{${key}}}`, value),
+      template
+    );
+  };
+
+  const buildBillMessage = () => {
+    const servicesList = visitServices.map((service, index) => {
+      const discountedService = discountedVisitServices[index] || service;
+
+      return fillTemplate(billSettings.billServiceLineTemplate, {
+        Index: String(index + 1),
+        ServiceName: service.name,
+        ServiceAmount: formatMoney(discountedService.chargedPrice),
+      });
+    }).join("\n");
+
+    const discountSection = normalizedDiscountPercent > 0
+      ? fillTemplate(billSettings.billDiscountLineTemplate, {
+          DiscountAmount: formatMoney(discountAmount),
+          DiscountPercent: formatMoney(normalizedDiscountPercent),
+        })
+      : "";
+
+    const values = {
+      CustomerName: client.name,
+      ServicesList: servicesList,
+      SubtotalAmount: formatMoney(currentTotal),
+      BillAmount: formatMoney(discountedTotal),
+      DiscountAmount: formatMoney(discountAmount),
+      DiscountPercent: formatMoney(normalizedDiscountPercent),
+      DiscountSection: discountSection,
+      PaymentURL: billSettings.paymentUrl,
+      InstagramURL: billSettings.instagramUrl,
+      GoogleReviewURL: billSettings.googleReviewUrl,
+    };
+
+    return fillTemplate(billSettings.billMessageTemplate, values)
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  };
+
+  const buildWhatsAppUrl = () => {
+    const phone = (client.phone || "").replace(/\D/g, "");
+    if (!phone) return "";
+
+    const countryCodePhone = phone.startsWith("91") ? phone : `91${phone}`;
+    return `https://wa.me/${countryCodePhone}?text=${encodeURIComponent(buildBillMessage())}`;
+  };
+
+  const addVisit = async ({ sendWhatsApp = false } = {}) => {
     if (!isValidDate(visitDate)) {
       toast.warning("Visit date is required");
       return;
@@ -164,31 +284,46 @@ function ClientDetailPage() {
       return;
     }
 
+    const whatsappUrl = sendWhatsApp ? buildWhatsAppUrl() : "";
+    if (sendWhatsApp && !whatsappUrl) {
+      toast.warning("Client phone number is missing");
+      return;
+    }
+
     try {
       setIsSavingVisit(true);
+      const discountNote = normalizedDiscountPercent
+        ? `Discount: ${normalizedDiscountPercent}% (-₹${formatMoney(discountAmount)}).`
+        : "";
+      const combinedNotes = [discountNote, visitNotes.trim()].filter(Boolean).join(" ");
+
       await visitService.createVisit({
         clientId: id,
         visitDate,
-        services: visitServices.map((s) => ({
+        services: discountedVisitServices.map((s) => ({
           serviceId: s._id,
           chargedPrice: s.chargedPrice,
         })),
-        notes: visitNotes.trim(),
-        totalAmount: currentTotal,
+        notes: combinedNotes,
+        totalAmount: discountedTotal,
       });
 
       const refreshed = await visitService.getClientVisits(id);
       setVisits(refreshed.data);
       setVisitServices([]);
+      setDiscountPercent("");
       setVisitNotes("");
       
       // Update local client state to reflect new total spent/last visit
       setClient(prev => ({
           ...prev, 
           lastVisit: visitDate, 
-          totalSpent: (prev.totalSpent || 0) + currentTotal 
+          totalSpent: (prev.totalSpent || 0) + discountedTotal 
       }));
       toast.success("Bill saved successfully");
+      if (whatsappUrl) {
+        window.location.href = whatsappUrl;
+      }
     } catch {
     } finally {
       setIsSavingVisit(false);
@@ -303,6 +438,26 @@ function ClientDetailPage() {
               + Add Service
             </button>
 
+            <div className="grid grid-cols-[1fr_auto] gap-3 items-center bg-gray-50 p-4 rounded-2xl">
+              <label className="text-xs font-bold text-gray-500 uppercase" htmlFor="bill-discount">
+                Discount
+              </label>
+              <div className="flex items-center gap-1 bg-white px-3 py-2 rounded-xl border border-gray-100">
+                <input
+                  id="bill-discount"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  className="w-14 bg-transparent text-right text-sm font-black text-gray-900 focus:outline-none"
+                  value={discountPercent}
+                  onChange={(e) => handleDiscountChange(e.target.value)}
+                  onClick={(e) => e.target.select()}
+                />
+                <span className="text-xs font-black text-brandPink">%</span>
+              </div>
+            </div>
+
             <input
               type="text"
               placeholder="Any remarks? (Optional)"
@@ -312,17 +467,29 @@ function ClientDetailPage() {
               onChange={(e) => setVisitNotes(e.target.value)}
             />
 
-            <div className="flex justify-between items-center pt-2">
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase">Total Amount</p>
-                <p className="text-2xl font-black text-gray-900">₹{currentTotal}</p>
+            <div className="pt-2 space-y-3">
+              <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
+                <div className="flex justify-between text-sm font-bold text-gray-500">
+                  <span>Subtotal</span>
+                  <span>&#8377;{formatMoney(currentTotal)}</span>
+                </div>
+                {normalizedDiscountPercent > 0 && (
+                  <div className="flex justify-between text-sm font-bold text-gray-500">
+                    <span>Discount ({normalizedDiscountPercent}%)</span>
+                    <span>-&#8377;{formatMoney(discountAmount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-end border-t border-gray-200 pt-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Total Amount</span>
+                  <span className="text-2xl font-black text-gray-900">&#8377;{formatMoney(discountedTotal)}</span>
+                </div>
               </div>
               <button 
-                onClick={addVisit} 
+                onClick={() => addVisit({ sendWhatsApp: true })} 
                 disabled={isSavingVisit}
-                className="bg-primary text-white px-6 py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-50"
+                className="w-full bg-primary text-white px-4 py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-50"
               >
-                {isSavingVisit ? "Saving..." : "Save Bill"}
+                {isSavingVisit ? "Saving..." : "Save & WhatsApp"}
               </button>
             </div>
           </div>

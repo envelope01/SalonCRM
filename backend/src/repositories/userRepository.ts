@@ -20,7 +20,7 @@ export const userRepository = {
       .limit(1);
   },
 
-  create(values: { email: string; name: string; passwordHash: string; role: "owner" | "staff" | "dev" }) {
+  create(values: { email: string; name: string; passwordHash: string; role: "owner" | "staff" | "admin" | "dev" }) {
     return db.insert(users).values(values).returning();
   },
 };

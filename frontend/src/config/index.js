@@ -23,15 +23,56 @@ function resolveApiBaseUrl() {
   }
 
   if (!configured || configured.toLowerCase() === "auto") {
-    throw new Error("REACT_APP_API_BASE_URL is required outside development auto mode");
+    throw new Error(
+      "REACT_APP_API_BASE_URL is required outside development auto mode",
+    );
   }
 
   return configured;
 }
 
+const defaultBillConfig = {
+  paymentUrl: "https://example.com/payment-or-payment-qr",
+  instagramUrl: "https://instagram.com/your_salon",
+  googleReviewUrl: "https://g.page/r/your-review-link",
+  billMessageTemplate: [
+    "Hi *{{CustomerName}}*! 😊",
+    "",
+    "Thank you for visiting our salon! ❤️",
+    "",
+    "🧾 *Services Taken:*",
+    "{{ServicesList}}",
+    "",
+    "💰 *Subtotal:* ₹{{SubtotalAmount}}",
+    "{{DiscountSection}}",
+    "🧾 *Your Bill Amount:* ₹{{BillAmount}}",
+    "",
+    "We're grateful for your visit and look forward to serving you again.",
+    "",
+    "💳 *Pay Online:*",
+    "{{PaymentURL}}",
+    "",
+    "📸 *Follow us on Instagram:*",
+    "{{InstagramURL}}",
+    "",
+    "⭐ *Loved your experience? Please leave us a Google Review:*",
+    "{{GoogleReviewURL}}",
+    "",
+    "Your feedback means a lot to us and helps us serve you even better. Thank you for your support! 🙏",
+  ].join("\n"),
+  billServiceLineTemplate: "{{Index}}. {{ServiceName}} - ₹{{ServiceAmount}}",
+  billDiscountLineTemplate: "🎉 *You Saved:* ₹{{DiscountAmount}} ({{DiscountPercent}}% discount)",
+};
+
 export const appConfig = {
   env: process.env.NODE_ENV || "development",
   apiBaseUrl: resolveApiBaseUrl(),
+  paymentUrl: (process.env.REACT_APP_PAYMENT_URL || defaultBillConfig.paymentUrl).trim(),
+  googleReviewUrl: (process.env.REACT_APP_GOOGLE_REVIEW_URL || defaultBillConfig.googleReviewUrl).trim(),
+  instagramUrl: (process.env.REACT_APP_INSTAGRAM_URL || defaultBillConfig.instagramUrl).trim(),
+  billMessageTemplate: (process.env.REACT_APP_BILL_MESSAGE_TEMPLATE || defaultBillConfig.billMessageTemplate).replace(/\\n/g, "\n").trim(),
+  billServiceLineTemplate: (process.env.REACT_APP_BILL_SERVICE_LINE_TEMPLATE || defaultBillConfig.billServiceLineTemplate).replace(/\\n/g, "\n").trim(),
+  billDiscountLineTemplate: (process.env.REACT_APP_BILL_DISCOUNT_LINE_TEMPLATE || defaultBillConfig.billDiscountLineTemplate).replace(/\\n/g, "\n").trim(),
   isDevelopment: process.env.NODE_ENV === "development",
   isProduction: process.env.NODE_ENV === "production",
 };
