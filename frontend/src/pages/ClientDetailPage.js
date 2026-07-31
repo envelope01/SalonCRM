@@ -242,6 +242,12 @@ function ClientDetailPage() {
         })
       : "";
 
+    const paymentUrl = fillTemplate(billSettings.paymentUrl, {
+      BillAmount: formatMoney(discountedTotal),
+      Amount: formatMoney(discountedTotal),
+      CustomerName: client.name,
+    });
+
     const values = {
       CustomerName: client.name,
       ServicesList: servicesList,
@@ -250,7 +256,7 @@ function ClientDetailPage() {
       DiscountAmount: formatMoney(discountAmount),
       DiscountPercent: formatMoney(normalizedDiscountPercent),
       DiscountSection: discountSection,
-      PaymentURL: billSettings.paymentUrl,
+      PaymentURL: paymentUrl,
       InstagramURL: billSettings.instagramUrl,
       GoogleReviewURL: billSettings.googleReviewUrl,
     };

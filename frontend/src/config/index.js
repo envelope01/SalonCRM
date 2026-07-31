@@ -32,7 +32,7 @@ function resolveApiBaseUrl() {
 }
 
 const defaultBillConfig = {
-  paymentUrl: "https://example.com/payment-or-payment-qr",
+  paymentUrl: "upi://pay?pa=9082355838@kotak&pn=SalonName&am={{BillAmount}}&cu=INR",
   instagramUrl: "https://instagram.com/your_salon",
   googleReviewUrl: "https://g.page/r/your-review-link",
   billMessageTemplate: [
@@ -49,7 +49,7 @@ const defaultBillConfig = {
     "",
     "We're grateful for your visit and look forward to serving you again.",
     "",
-    "💳 *Pay Online:*",
+    "💳 *Click here to pay:*",
     "{{PaymentURL}}",
     "",
     "📸 *Follow us on Instagram:*",
