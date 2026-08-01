@@ -76,8 +76,14 @@ export function normalizePhone(value: unknown) {
 }
 
 export function optionalPhone(value: unknown) {
-  if (value === undefined) return undefined;
-  return normalizePhone(value);
+  const phone = String(value ?? "").replace(/\D/g, "");
+  if (!phone) return null;
+
+  if (phone.length !== 10) {
+    throw badRequest("Phone must be exactly 10 digits");
+  }
+
+  return phone;
 }
 
 export function requireMoney(value: unknown, fieldName: string) {

@@ -72,7 +72,7 @@ function ClientDetailPage() {
         setClient(clientRes.data);
         setForm({
           name: clientRes.data.name,
-          phone: clientRes.data.phone,
+          phone: clientRes.data.phone || "",
           notes: clientRes.data.notes || "",
         });
         setServices(serviceRes.data.filter((s) => s.isActive));
@@ -267,7 +267,7 @@ function ClientDetailPage() {
   };
 
   const buildWhatsAppUrl = () => {
-    const phone = (client.phone || "").replace(/\D/g, "");
+    const phone = String(client.phone || "").replace(/\D/g, "");
     if (!phone) return "";
 
     const countryCodePhone = phone.startsWith("91") ? phone : `91${phone}`;
@@ -344,6 +344,9 @@ function ClientDetailPage() {
 
   if (!client) return <div className="p-8 text-center text-brandPink font-bold animate-pulse">Loading profile...</div>;
 
+  const clientPhone = String(client.phone || "").replace(/\D/g, "");
+  const hasPhone = clientPhone.length > 0;
+
   /* ======================================================
      RENDER
      ====================================================== */
@@ -362,7 +365,9 @@ function ClientDetailPage() {
           </div>
           
           <h2 className="text-xl font-black text-gray-900">{client.name}</h2>
-          <p className="text-sm font-semibold text-gray-500 mt-1">{client.phone}</p>
+          {hasPhone && (
+            <p className="text-sm font-semibold text-gray-500 mt-1">{clientPhone}</p>
+          )}
           
           {client.notes && (
             <div className="mt-3 bg-gray-50 p-3 rounded-2xl text-xs text-gray-600 italic">
@@ -371,12 +376,16 @@ function ClientDetailPage() {
           )}
 
           <div className="flex justify-center gap-3 mt-5">
-            <a href={`tel:${client.phone}`} className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform">
+            {hasPhone && (
+              <>
+            <a href={`tel:${clientPhone}`} className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform">
               📞
             </a>
-            <a href={`https://wa.me/91${client.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-2xl bg-green-50 text-green-500 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform">
+            <a href={`https://wa.me/91${clientPhone}`} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-2xl bg-green-50 text-green-500 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform">
               💬
             </a>
+              </>
+            )}
             <button onClick={() => setShowEditSheet(true)} className="w-12 h-12 rounded-2xl bg-gray-100 text-gray-600 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform">
               ✎
             </button>
@@ -491,11 +500,11 @@ function ClientDetailPage() {
                 </div>
               </div>
               <button 
-                onClick={() => addVisit({ sendWhatsApp: true })} 
+                onClick={() => addVisit({ sendWhatsApp: hasPhone })} 
                 disabled={isSavingVisit}
                 className="w-full bg-primary text-white px-4 py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-50"
               >
-                {isSavingVisit ? "Saving..." : "Save & WhatsApp"}
+                {isSavingVisit ? "Saving..." : hasPhone ? "Save & WhatsApp" : "Save"}
               </button>
             </div>
           </div>
@@ -546,7 +555,7 @@ function ClientDetailPage() {
               <h2 className="text-xl font-black mb-6 text-gray-900">Edit Profile</h2>
               <div className="space-y-4">
                 <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.name} maxLength="120" onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full Name" />
-                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.phone} inputMode="numeric" maxLength="10" onChange={(e) => setForm({ ...form, phone: normalizePhoneInput(e.target.value) })} placeholder="Phone Number" />
+                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.phone} inputMode="numeric" maxLength="10" onChange={(e) => setForm({ ...form, phone: normalizePhoneInput(e.target.value) })} placeholder="Phone Number (optional)" />
                 <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.notes} maxLength="1000" onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" />
                 <button onClick={saveClient} disabled={isSavingProfile} className="w-full bg-primary text-white py-4 rounded-2xl font-bold mt-2 shadow-lg shadow-primary/20 disabled:opacity-70">
                   {isSavingProfile ? "Saving..." : "Save Changes"}

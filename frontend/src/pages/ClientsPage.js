@@ -66,7 +66,7 @@ function ClientsPage() {
 
     const query = value.toLowerCase();
     const filtered = allClients.filter(
-      (c) => c.name.toLowerCase().includes(query) || c.phone.includes(query)
+      (c) => c.name.toLowerCase().includes(query) || String(c.phone || "").includes(query)
     );
 
     setClients(filtered);
@@ -206,7 +206,11 @@ function ClientsPage() {
         ) : (
           <motion.div layout className="space-y-3">
             <AnimatePresence>
-              {clients.map((c) => (
+              {clients.map((c) => {
+                const clientPhone = normalizePhoneInput(c.phone);
+                const hasPhone = clientPhone.length > 0;
+
+                return (
                 <motion.div
                   layout
                   initial={{ opacity: 0, y: 10 }}
@@ -227,9 +231,11 @@ function ClientsPage() {
                       <h3 className="font-bold text-gray-900 text-base truncate">
                         {c.name}
                       </h3>
-                      <p className="text-xs font-semibold text-gray-400 mt-0.5 tracking-wide">
-                        {c.phone}
-                      </p>
+                      {hasPhone && (
+                        <p className="text-xs font-semibold text-gray-400 mt-0.5 tracking-wide">
+                          {clientPhone}
+                        </p>
+                      )}
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className="text-[10px] font-bold text-gray-400 uppercase bg-gray-50 px-2 py-0.5 rounded-md">
                           Visited: {c.lastVisit ? new Date(c.lastVisit).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Never'}
@@ -245,8 +251,10 @@ function ClientsPage() {
 
                   {/* Quick Actions (Call / WhatsApp / Delete) */}
                   <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 sm:gap-2">
+                    {hasPhone && (
+                      <>
                     <a 
-                      href={`https://wa.me/91${c.phone.replace(/\D/g, "")}`} 
+                      href={`https://wa.me/91${clientPhone}`} 
                       target="_blank" 
                       rel="noreferrer"
                       onClick={(e) => e.stopPropagation()}
@@ -255,12 +263,14 @@ function ClientsPage() {
                       💬
                     </a>
                     <a 
-                      href={`tel:${c.phone}`} 
+                      href={`tel:${clientPhone}`} 
                       onClick={(e) => e.stopPropagation()}
                       className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-sm shadow-sm active:scale-90 transition-transform"
                     >
                       📞
                     </a>
+                      </>
+                    )}
                     <button
                       type="button"
                       disabled={deletingClientId === c._id}
@@ -276,7 +286,8 @@ function ClientsPage() {
                     </button>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
             </AnimatePresence>
           </motion.div>
         )}
@@ -321,7 +332,7 @@ function ClientsPage() {
 
                 <input
                   className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/20"
-                  placeholder="Phone Number"
+                  placeholder="Phone Number (optional)"
                   value={phone}
                   inputMode="numeric"
                   maxLength="10"

@@ -29,8 +29,10 @@ export function isValidDate(value) {
 }
 
 export function clientValidationError({ name, phone }) {
+  const normalizedPhone = normalizePhoneInput(phone);
+
   if (isBlank(name)) return "Name is required";
-  if (!isValidPhone(phone)) return `Phone number must be exactly ${PHONE_DIGITS} digits`;
+  if (normalizedPhone && !isValidPhone(normalizedPhone)) return `Phone number must be exactly ${PHONE_DIGITS} digits`;
   return "";
 }
 

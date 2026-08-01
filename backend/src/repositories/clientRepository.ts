@@ -3,7 +3,7 @@ import { db } from "../db";
 import { clients } from "../db/schema";
 
 export const clientRepository = {
-  create(values: { name: string; phone: string; notes: string }) {
+  create(values: { name: string; phone: string | null; notes: string }) {
     return db.insert(clients).values(values).returning();
   },
 

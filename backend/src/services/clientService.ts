@@ -1,7 +1,6 @@
 import { formatClient } from "../db/serializers";
 import { badRequest, notFound } from "../lib/httpErrors";
 import {
-  normalizePhone,
   optionalPhone,
   optionalText,
   requireText,
@@ -15,11 +14,13 @@ export const clientService = {
   async createClient(body: any) {
     const { name, phone, notes = "" } = body;
 
-    if (!name || !phone) throw badRequest("Name and phone are required");
+    if (!name) throw badRequest("Name is required");
 
-    const normalizedPhone = normalizePhone(phone);
-    const [existing] = await clientRepository.findActiveByPhone(normalizedPhone);
-    if (existing) throw badRequest("Client with this phone number already exists");
+    const normalizedPhone = optionalPhone(phone);
+    if (typeof normalizedPhone === "string") {
+      const [existing] = await clientRepository.findActiveByPhone(normalizedPhone);
+      if (existing) throw badRequest("Client with this phone number already exists");
+    }
 
     const [client] = await clientRepository.create({
       name: requireText(name, "Name", { max: 120 }),
