@@ -12,35 +12,23 @@ function dateLabel(date: Date) {
 export const reportService = {
   async getSummary(query: any) {
     const { from, to } = query;
-    let startDate: Date;
-    let endDate: Date;
+    const parsedFrom = optionalDate(from, "From date");
+    const parsedTo = optionalDate(to, "To date");
+    const startDate = parsedFrom || new Date(0);
+    const endDate = parsedTo || new Date();
 
-    if (!from && !to) {
-      startDate = new Date(0);
-      endDate = new Date();
-    } else {
-      if (!from || !to) {
-        throw badRequest("Both 'from' and 'to' are required when filtering by date.");
-      }
-
-      startDate = optionalDate(from, "From date")!;
-      endDate = optionalDate(to, "To date")!;
+    if (parsedTo) {
       endDate.setHours(23, 59, 59, 999);
+    }
+
+    if (startDate > endDate) {
+      throw badRequest("From date cannot be after to date");
     }
 
     const rows = await reportRepository.getSummaryRows(startDate, endDate);
     const totalEarnings = Number(rows.earningsTotals?.totalEarnings || 0);
     const totalVisits = Number(rows.earningsTotals?.totalVisits || 0);
     const totalExpenses = Number(rows.expenseTotals?.totalExpenses || 0);
-
-    const dayLabels = [];
-    const cursor = new Date(startDate);
-    const last = new Date(endDate);
-
-    while (cursor <= last) {
-      dayLabels.push(dateLabel(cursor));
-      cursor.setDate(cursor.getDate() + 1);
-    }
 
     const earningsMap: Record<string, number> = {};
     rows.earningsByDay.forEach((row: any) => {
@@ -51,6 +39,22 @@ export const reportService = {
     rows.expensesByDay.forEach((row: any) => {
       expensesMap[row._id] = Number(row.expenses);
     });
+
+    let dayLabels: string[] = [];
+    if (parsedFrom) {
+      const cursor = new Date(startDate);
+      const last = new Date(endDate);
+
+      while (cursor <= last) {
+        dayLabels.push(dateLabel(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    } else {
+      dayLabels = Array.from(new Set([
+        ...Object.keys(earningsMap),
+        ...Object.keys(expensesMap),
+      ])).sort();
+    }
 
     const byDay = dayLabels.map((label) => ({
       date: label,
@@ -64,8 +68,8 @@ export const reportService = {
     }));
 
     return {
-      from: from || null,
-      to: to || null,
+      from: parsedFrom ? dateLabel(parsedFrom) : null,
+      to: parsedTo ? dateLabel(parsedTo) : null,
       totalEarnings,
       totalExpenses,
       netProfit: totalEarnings - totalExpenses,

@@ -89,6 +89,30 @@ export const appSettings = pgTable("app_settings", {
   ...timestamps,
 });
 
+export const appointments = pgTable(
+  "appointments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    appointmentStart: timestamp("appointment_start", { withTimezone: true }).notNull(),
+    appointmentEnd: timestamp("appointment_end", { withTimezone: true }).notNull(),
+    status: text("status").notNull().default("scheduled"),
+    notes: text("notes").notNull().default(""),
+    ...timestamps,
+  },
+  (table) => ({
+    clientIdx: index("appointments_client_idx").on(table.clientId),
+    startIdx: index("appointments_start_idx").on(table.appointmentStart),
+    endIdx: index("appointments_end_idx").on(table.appointmentEnd),
+    dateOrderIdx: index("appointments_date_order_idx").on(table.appointmentStart, table.appointmentEnd),
+    appointmentTimeOrder: check("appointments_time_order", sql`${table.appointmentEnd} > ${table.appointmentStart}`),
+    appointmentStatusValid: check("appointments_status_valid", sql`${table.status} in ('scheduled', 'completed', 'cancelled')`),
+  }),
+);
+
 export const visits = pgTable(
   "visits",
   {
@@ -137,6 +161,7 @@ export const usersRelations = relations(users, () => ({}));
 
 export const clientsRelations = relations(clients, ({ many }) => ({
   visits: many(visits),
+  appointments: many(appointments),
 }));
 
 export const servicesRelations = relations(services, ({ many }) => ({
@@ -145,6 +170,13 @@ export const servicesRelations = relations(services, ({ many }) => ({
 
 export const expensesRelations = relations(expenses, () => ({}));
 export const appSettingsRelations = relations(appSettings, () => ({}));
+
+export const appointmentsRelations = relations(appointments, ({ one }) => ({
+  client: one(clients, {
+    fields: [appointments.clientId],
+    references: [clients.id],
+  }),
+}));
 
 export const visitsRelations = relations(visits, ({ one, many }) => ({
   client: one(clients, {
@@ -175,6 +207,8 @@ export type Expense = InferSelectModel<typeof expenses>;
 export type NewExpense = InferInsertModel<typeof expenses>;
 export type AppSetting = InferSelectModel<typeof appSettings>;
 export type NewAppSetting = InferInsertModel<typeof appSettings>;
+export type Appointment = InferSelectModel<typeof appointments>;
+export type NewAppointment = InferInsertModel<typeof appointments>;
 export type Visit = InferSelectModel<typeof visits>;
 export type NewVisit = InferInsertModel<typeof visits>;
 export type VisitService = InferSelectModel<typeof visitServices>;

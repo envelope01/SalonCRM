@@ -12,6 +12,7 @@ import {
    ========================= */
 import ClientsPage from "./pages/ClientsPage";
 import ClientDetailPage from "./pages/ClientDetailPage";
+import AppointmentsPage from "./pages/AppointmentsPage";
 import ServicesPage from "./pages/ServicesPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -92,6 +93,13 @@ function App() {
             <Route
               path="/"
               element={
+                user ? <AppointmentsPage /> : <Navigate to="/login" replace />
+              }
+            />
+
+            <Route
+              path="/clients"
+              element={
                 user ? <ClientsPage /> : <Navigate to="/login" replace />
               }
             />
@@ -100,6 +108,13 @@ function App() {
               path="/clients/:id"
               element={
                 user ? <ClientDetailPage /> : <Navigate to="/login" replace />
+              }
+            />
+
+            <Route
+              path="/appointments"
+              element={
+                user ? <Navigate to="/" replace /> : <Navigate to="/login" replace />
               }
             />
 

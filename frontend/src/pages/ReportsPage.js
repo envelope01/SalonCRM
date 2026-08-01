@@ -83,6 +83,16 @@ function ReportsPage() {
     fetchData(start, end);
   }, [fetchData]);
 
+  const applyCustomRange = () => {
+    if (!fromDate && !toDate) {
+      toast.warning("Select at least one custom date");
+      return;
+    }
+
+    setPeriod("custom");
+    fetchData(fromDate, toDate);
+  };
+
   useEffect(() => {
     applyPreset("today");
   }, [applyPreset]);
@@ -164,11 +174,11 @@ function ReportsPage() {
 {/* HEADER */}
       <MainHeader title="Reports">
         <div className="flex bg-gray-100 p-1 rounded-2xl mt-4">
-          {["today", "week", "month", "year"].map((p) => (
+          {["today", "week", "month", "year", "custom"].map((p) => (
             <button
               key={p}
-              onClick={() => applyPreset(p)}
-              className={`flex-1 py-2.5 text-xs font-bold rounded-xl capitalize transition-all ${
+              onClick={() => (p === "custom" ? setPeriod("custom") : applyPreset(p))}
+              className={`flex-1 py-2.5 text-[11px] font-bold rounded-xl capitalize transition-all ${
                 period === p ? "bg-white shadow text-brandPink" : "text-gray-500"
               }`}
             >
@@ -177,11 +187,43 @@ function ReportsPage() {
           ))}
         </div>
         
-        {/* Manual Date Indicators */}
-        <div className="mt-3 flex justify-between items-center text-[10px] text-gray-400 font-medium px-1">
-          <span>From: {fromDate}</span>
-          <span>To: {toDate}</span>
-        </div>
+        {period === "custom" ? (
+          <div className="grid grid-cols-[1fr_1fr_auto] gap-2 mt-3">
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="min-w-0 bg-gray-100 rounded-2xl px-3 py-3 text-xs font-bold text-gray-700 outline-none"
+            />
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="min-w-0 bg-gray-100 rounded-2xl px-3 py-3 text-xs font-bold text-gray-700 outline-none"
+            />
+            <button
+              type="button"
+              onClick={applyCustomRange}
+              className="bg-primary text-white px-4 py-3 rounded-2xl text-xs font-bold active:scale-95 transition-transform"
+            >
+              Go
+            </button>
+          </div>
+        ) : (
+          <div className={`mt-3 flex items-center text-xs font-bold text-gray-500 px-1 ${
+            period === "today" ? "justify-center" : "justify-center gap-3"
+          }`}>
+            {period === "today" ? (
+              <span>{fromDate}</span>
+            ) : (
+              <>
+                <span>From: {fromDate}</span>
+                <span className="text-gray-300">|</span>
+                <span>To: {toDate}</span>
+              </>
+            )}
+          </div>
+        )}
       </MainHeader>
 
       <main className="p-4 space-y-4">

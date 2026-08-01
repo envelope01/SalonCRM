@@ -63,6 +63,19 @@ export function expenseValidationError({ date, category, amount }) {
   return "";
 }
 
+export function appointmentValidationError({ title, clientId, date, startTime, durationMinutes }) {
+  if (isBlank(title)) return "Appointment title is required";
+  if (isBlank(clientId)) return "Please select a client";
+  if (!isValidDate(date)) return "Appointment date is required";
+  if (isBlank(startTime)) return "Appointment time is required";
+
+  const duration = Number(durationMinutes);
+  if (!Number.isFinite(duration) || duration < 5) return "Appointment duration must be at least 5 minutes";
+  if (duration > 720) return "Appointment duration cannot be longer than 12 hours";
+
+  return "";
+}
+
 export function loginValidationError({ email, password }) {
   if (isBlank(email)) return "Email is required";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {

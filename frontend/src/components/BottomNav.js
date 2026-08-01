@@ -8,13 +8,13 @@ const BottomNav = ({ user }) => {
   const location = useLocation();
   const canViewReportsAndSettings = privilegedRoles.has(user?.role);
 
-  // Show bottom nav only on main pages
-  const isMainPage = ["/", "/services", "/reports", "/settings"].includes(location.pathname);
+  const isMainPage = ["/", "/clients", "/services", "/reports", "/settings"].includes(location.pathname);
 
   if (!isMainPage) return null;
 
   const navItems = [
-    { to: "/", label: "Clients", icon: "👥" },
+    { to: "/", label: "Appts", icon: "📅" },
+    { to: "/clients", label: "Clients", icon: "👥" },
     { to: "/services", label: "Services", icon: "💅" },
     canViewReportsAndSettings ? { to: "/reports", label: "Reports", icon: "📊" } : null,
     canViewReportsAndSettings ? { to: "/settings", label: "Settings", icon: "⚙" } : null,
@@ -23,16 +23,11 @@ const BottomNav = ({ user }) => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 flex justify-center">
       <div className="relative w-full max-w-3xl">
-        {/* iOS Frosted Glass Effect */}
         <div className="absolute inset-0 bg-white/80 backdrop-blur-xl border-t border-gray-200/50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]" />
 
         <div className="relative flex justify-around items-center px-2 pt-2 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
           {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className="flex-1"
-            >
+            <NavLink key={item.to} to={item.to} className="flex-1">
               {({ isActive }) => (
                 <motion.div
                   whileTap={{ scale: 0.9 }}
