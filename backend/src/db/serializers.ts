@@ -2,13 +2,15 @@ import type { Appointment, Client, Expense, Service, User, Visit, VisitService }
 
 const version = (row: { version?: number | null }) => row.version ?? 0;
 
-export function formatClient(row: Client) {
+export function formatClient(row: Client & { lastVisit?: Date | null; totalSpent?: number | string | null }) {
   return {
     _id: row.id,
     name: row.name,
     phone: row.phone,
     notes: row.notes,
     isActive: row.isActive,
+    lastVisit: row.lastVisit ?? null,
+    totalSpent: Number(row.totalSpent || 0),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     __v: version(row),

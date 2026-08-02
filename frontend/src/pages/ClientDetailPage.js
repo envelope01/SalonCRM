@@ -51,6 +51,7 @@ function ClientDetailPage() {
   const [visitNotes, setVisitNotes] = useState("");
   const [showServicePicker, setShowServicePicker] = useState(false);
   const [isSavingVisit, setIsSavingVisit] = useState(false);
+  const [deletingVisitId, setDeletingVisitId] = useState("");
 
   /* ======================================================
      GUARD & LOAD DATA
@@ -203,6 +204,29 @@ function ClientDetailPage() {
     });
   };
 
+  const formatVisitDate = (date) => {
+    return new Date(date).toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getVisitSummary = (visitList) => {
+    const totalSpent = visitList.reduce(
+      (sum, visit) => sum + Number(visit.totalAmount || 0),
+      0
+    );
+    const lastVisit = visitList.reduce((latest, visit) => {
+      if (!visit.visitDate) return latest;
+      if (!latest) return visit.visitDate;
+
+      return new Date(visit.visitDate) > new Date(latest) ? visit.visitDate : latest;
+    }, null);
+
+    return { lastVisit, totalSpent };
+  };
+
   const handleDiscountChange = (value) => {
     const amount = parseMoney(value);
     if (value === "") {
@@ -315,16 +339,15 @@ function ClientDetailPage() {
       });
 
       const refreshed = await visitService.getClientVisits(id);
-      setVisits(refreshed.data);
+      const nextVisits = refreshed.data || [];
+      setVisits(nextVisits);
       setVisitServices([]);
       setDiscountPercent("");
       setVisitNotes("");
       
-      // Update local client state to reflect new total spent/last visit
-      setClient(prev => ({
-          ...prev, 
-          lastVisit: visitDate, 
-          totalSpent: (prev.totalSpent || 0) + discountedTotal 
+      setClient((prev) => ({
+        ...prev,
+        ...getVisitSummary(nextVisits),
       }));
       toast.success("Bill saved successfully");
       if (whatsappUrl) {
@@ -333,6 +356,40 @@ function ClientDetailPage() {
     } catch {
     } finally {
       setIsSavingVisit(false);
+    }
+  };
+
+  const deleteVisit = async (visit) => {
+    const confirmed = await confirm({
+      title: "Delete visit?",
+      message: `Delete the visit from ${formatVisitDate(visit.visitDate)}? This will remove it from history and reports.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Keep",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    const previousVisits = visits;
+    const previousClient = client;
+    const nextVisits = visits.filter((item) => item._id !== visit._id);
+
+    try {
+      setDeletingVisitId(visit._id);
+      setVisits(nextVisits);
+      setClient((prev) => ({
+        ...prev,
+        ...getVisitSummary(nextVisits),
+      }));
+      await visitService.deleteVisit(visit._id);
+      toast.success("Visit deleted successfully");
+    } catch {
+      setVisits(previousVisits);
+      setClient(previousClient);
+    } finally {
+      setDeletingVisitId("");
     }
   };
 
@@ -519,7 +576,7 @@ function ClientDetailPage() {
           <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
             {visits.length === 0 && <p className="text-center text-gray-400 text-sm py-4">No visits recorded yet.</p>}
             
-            {visits.map((v, index) => (
+            {visits.map((v) => (
               <div key={v._id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                 {/* Timeline Dot */}
                 <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-brandPink text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
@@ -528,11 +585,22 @@ function ClientDetailPage() {
                 
                 {/* Content Card */}
                 <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <div className="flex justify-between items-start mb-1">
+                  <div className="flex justify-between items-start gap-3 mb-1">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                      {new Date(v.visitDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {formatVisitDate(v.visitDate)}
                     </span>
-                    <span className="text-sm font-black text-primary">₹{v.totalAmount}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-black text-primary">₹{v.totalAmount}</span>
+                      <button
+                        type="button"
+                        disabled={deletingVisitId === v._id}
+                        onClick={() => deleteVisit(v)}
+                        className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shadow-sm active:scale-90 transition-transform disabled:opacity-60"
+                        aria-label={`Delete visit from ${formatVisitDate(v.visitDate)}`}
+                      >
+                        {deletingVisitId === v._id ? "..." : <TrashIcon />}
+                      </button>
+                    </div>
                   </div>
                   <div className="text-sm font-bold text-gray-800">
                     {v.services.map((s) => s.name).join(" • ")}

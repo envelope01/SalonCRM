@@ -1,6 +1,6 @@
-import { asc, and, eq, ilike, ne, or } from "drizzle-orm";
+import { asc, and, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
 import { db } from "../db";
-import { clients } from "../db/schema";
+import { clients, visits } from "../db/schema";
 
 export const clientRepository = {
   create(values: { name: string; phone: string | null; notes: string }) {
@@ -21,6 +21,20 @@ export const clientRepository = {
       .from(clients)
       .where(eq(clients.id, id))
       .limit(1);
+  },
+
+  findVisitSummariesForClientIds(ids: string[]) {
+    if (ids.length === 0) return [];
+
+    return db
+      .select({
+        clientId: visits.clientId,
+        lastVisit: sql<Date | null>`max(${visits.visitDate})`,
+        totalSpent: sql<number>`cast(coalesce(sum(${visits.totalAmount}), 0) as double precision)`,
+      })
+      .from(visits)
+      .where(and(inArray(visits.clientId, ids), eq(visits.isDeleted, false)))
+      .groupBy(visits.clientId);
   },
 
   findActiveByPhone(phone: string) {

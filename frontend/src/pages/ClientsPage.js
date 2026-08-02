@@ -236,16 +236,20 @@ function ClientsPage() {
                           {clientPhone}
                         </p>
                       )}
+                      {(c.lastVisit || c.totalSpent > 0) && (
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase bg-gray-50 px-2 py-0.5 rounded-md">
-                          Visited: {c.lastVisit ? new Date(c.lastVisit).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Never'}
-                        </span>
+                        {c.lastVisit && (
+                          <span className="text-[10px] font-bold text-gray-400 uppercase bg-gray-50 px-2 py-0.5 rounded-md">
+                            Last visit: {new Date(c.lastVisit).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
                         {c.totalSpent > 0 && (
                           <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md">
                             ₹{c.totalSpent.toLocaleString()}
                           </span>
                         )}
                       </div>
+                      )}
                     </div>
                   </Link>
 

@@ -10,6 +10,21 @@ import { clientRepository } from "../repositories/clientRepository";
 
 const allowedUpdateFields = ["name", "phone", "notes", "isActive"];
 
+async function addVisitSummaries(clients: any[]) {
+  const summaries = await clientRepository.findVisitSummariesForClientIds(
+    clients.map((client) => client.id),
+  );
+  const summaryByClientId = new Map(
+    summaries.map((summary: any) => [summary.clientId, summary]),
+  );
+
+  return clients.map((client) => ({
+    ...client,
+    lastVisit: summaryByClientId.get(client.id)?.lastVisit ?? null,
+    totalSpent: Number(summaryByClientId.get(client.id)?.totalSpent || 0),
+  }));
+}
+
 export const clientService = {
   async createClient(body: any) {
     const { name, phone, notes = "" } = body;
@@ -33,7 +48,8 @@ export const clientService = {
 
   async getClients() {
     const rows = await clientRepository.findActive();
-    return rows.map(formatClient);
+    const clientsWithSummaries = await addVisitSummaries(rows);
+    return clientsWithSummaries.map(formatClient);
   },
 
   async getClientById(id: string) {
@@ -41,7 +57,8 @@ export const clientService = {
     const [client] = await clientRepository.findById(clientId);
     if (!client) throw notFound("Client not found");
 
-    return formatClient(client);
+    const [clientWithSummary] = await addVisitSummaries([client]);
+    return formatClient(clientWithSummary);
   },
 
   async searchClients(query: unknown) {
