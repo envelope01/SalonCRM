@@ -79,6 +79,9 @@ cd backend
 npm run db:migrate:prod
 ```
 
+Production builds do not require database access. Run migrations from the backend
+start command or as an explicit release/admin step.
+
 ## Render Deployment
 
 Backend Service:
@@ -91,7 +94,7 @@ Start Command: npm run render:start
 
 Do not set the Start Command to plain `npm run`; that only prints the available scripts and exits before the Express server starts.
 
-`render:build` runs `drizzle-kit migrate` against the Render PostgreSQL database using `NODE_ENV=production`. Use `db:push:prod` only for controlled schema syncs when you intentionally want Drizzle Kit to push schema changes directly.
+`render:build` runs a TypeScript validation only, so deployment builds do not fail when Render's build environment cannot resolve a private database hostname. `render:start` runs `db:migrate:prod` before starting the server. Use `db:push:prod` only for controlled schema syncs when you intentionally want Drizzle Kit to push schema changes directly.
 
 Frontend Service:
 

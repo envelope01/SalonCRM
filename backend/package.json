@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "tsx scripts/start-production.ts",
-    "build": "npm run db:migrate:prod",
+    "build": "npm run typecheck",
+    "typecheck": "tsc --noEmit",
     "dev": "npm run db:ensure:appointments && cross-env NODE_ENV=development nodemon --exec tsx server.js",
     "db:generate": "cross-env NODE_ENV=development drizzle-kit generate",
     "db:migrate": "cross-env NODE_ENV=development drizzle-kit migrate",
@@ -15,7 +16,7 @@
     "db:push:prod": "drizzle-kit push --verbose",
     "db:push:prod:force": "drizzle-kit push --verbose --force",
     "db:check:tables": "tsx scripts/check-pg-tables.ts",
-    "render:build": "npm run db:migrate:prod",
+    "render:build": "npm run typecheck",
     "render:start": "npm run db:migrate:prod && npm start"
   },
   "keywords": [],
