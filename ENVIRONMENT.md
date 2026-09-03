@@ -94,7 +94,7 @@ Start Command: npm run render:start
 
 Do not set the Start Command to plain `npm run`; that only prints the available scripts and exits before the Express server starts.
 
-`render:build` runs a TypeScript validation only, so deployment builds do not fail when Render's build environment cannot resolve a private database hostname. `render:start` runs `db:migrate:prod` before starting the server. Use `db:push:prod` only for controlled schema syncs when you intentionally want Drizzle Kit to push schema changes directly.
+`render:build` is intentionally database-free and dev-tool-free because this backend runs through `tsx` at startup and does not need a compiled artifact. `render:start` runs `db:migrate:prod` before starting the server. Use `npm run typecheck` locally before pushing, and use `db:push:prod` only for controlled schema syncs when you intentionally want Drizzle Kit to push schema changes directly.
 
 Frontend Service:
 
