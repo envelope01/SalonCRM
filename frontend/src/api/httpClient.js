@@ -51,16 +51,6 @@ httpClient.interceptors.response.use(
       notifyApiError(error);
     }
 
-    if (appConfig.isDevelopment) {
-      // eslint-disable-next-line no-console
-      console.warn("API request failed", {
-        method,
-        url: config.url,
-        status,
-        requestId: config.headers?.["X-Request-Id"],
-      });
-    }
-
     return Promise.reject(error);
   },
 );

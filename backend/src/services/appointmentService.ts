@@ -2,6 +2,7 @@ import { formatAppointment } from "../db/serializers";
 import { badRequest, notFound } from "../lib/httpErrors";
 import { optionalDate, optionalText, requireText, requireUuid } from "../lib/validation";
 import { appointmentRepository } from "../repositories/appointmentRepository";
+import { requireSalonId } from "./tenantContext";
 
 const allowedStatuses = new Set(["scheduled", "completed", "cancelled"]);
 const maxAppointmentMinutes = 12 * 60;
@@ -32,27 +33,28 @@ function validateAppointmentWindow(start: Date, end: Date) {
   }
 }
 
-async function ensureNoOverlap(start: Date, end: Date, status: string, ignoredAppointmentId?: string) {
+async function ensureNoOverlap(salonId: string, start: Date, end: Date, status: string, ignoredAppointmentId?: string) {
   if (status === "cancelled") return;
 
-  const [existing] = await appointmentRepository.findOverlapping(start, end, ignoredAppointmentId);
+  const [existing] = await appointmentRepository.findOverlapping(salonId, start, end, ignoredAppointmentId);
   if (existing) {
     throw badRequest("Another appointment already exists for this time period");
   }
 }
 
-async function reconcileAppointmentLifecycle() {
+async function reconcileAppointmentLifecycle(salonId: string) {
   const now = new Date();
-  await appointmentRepository.completePastAppointments(now);
-  await appointmentRepository.deletePastCancelledAppointments(now);
+  await appointmentRepository.completePastAppointments(now, salonId);
+  await appointmentRepository.deletePastCancelledAppointments(now, salonId);
 }
 
 export const appointmentService = {
-  async createAppointment(body: any) {
-    await reconcileAppointmentLifecycle();
+  async createAppointment(body: any, user?: any) {
+    const salonId = requireSalonId(user);
+    await reconcileAppointmentLifecycle(salonId);
 
     const clientId = requireUuid(body.clientId, "clientId");
-    const [client] = await appointmentRepository.findActiveClientById(clientId);
+    const [client] = await appointmentRepository.findActiveClientById(clientId, salonId);
     if (!client) throw notFound("Client not found");
 
     const appointmentStart = requireAppointmentDate(body.appointmentStart, "Appointment start");
@@ -60,10 +62,11 @@ export const appointmentService = {
     const status = appointmentEnd < new Date() ? "completed" : "scheduled";
 
     validateAppointmentWindow(appointmentStart, appointmentEnd);
-    await ensureNoOverlap(appointmentStart, appointmentEnd, status);
+    await ensureNoOverlap(salonId, appointmentStart, appointmentEnd, status);
 
     const [appointment] = await appointmentRepository.create({
       clientId,
+      salonId,
       title: requireText(body.title, "Title", { max: 120 }),
       appointmentStart,
       appointmentEnd,
@@ -74,22 +77,24 @@ export const appointmentService = {
     return formatAppointment(appointment, client);
   },
 
-  async getAppointments(query: any) {
-    await reconcileAppointmentLifecycle();
+  async getAppointments(query: any, user?: any) {
+    const salonId = requireSalonId(user);
+    await reconcileAppointmentLifecycle(salonId);
 
     const from = optionalDate(query.from, "From date");
     const to = optionalDate(query.to, "To date");
     const status = query.status ? validateStatus(query.status) : undefined;
-    const rows = await appointmentRepository.findByDateRange(from, to, status);
+    const rows = await appointmentRepository.findByDateRange(salonId, from, to, status);
 
     return rows.map((row) => formatAppointment(row.appointment, row.client));
   },
 
-  async updateAppointment(id: string, body: any) {
-    await reconcileAppointmentLifecycle();
+  async updateAppointment(id: string, body: any, user?: any) {
+    const salonId = requireSalonId(user);
+    await reconcileAppointmentLifecycle(salonId);
 
     const appointmentId = requireUuid(id);
-    const [existing] = await appointmentRepository.findById(appointmentId);
+    const [existing] = await appointmentRepository.findById(appointmentId, salonId);
     if (!existing) throw notFound("Appointment not found");
     if (existing.status !== "scheduled") {
       throw badRequest("Only scheduled appointments can be edited");
@@ -98,7 +103,7 @@ export const appointmentService = {
     const nextClientId = body.clientId !== undefined
       ? requireUuid(body.clientId, "clientId")
       : existing.clientId;
-    const [client] = await appointmentRepository.findActiveClientById(nextClientId);
+    const [client] = await appointmentRepository.findActiveClientById(nextClientId, salonId);
     if (!client) throw notFound("Client not found");
 
     const appointmentStart = body.appointmentStart !== undefined
@@ -110,7 +115,7 @@ export const appointmentService = {
     const status = "scheduled";
 
     validateAppointmentWindow(appointmentStart, appointmentEnd);
-    await ensureNoOverlap(appointmentStart, appointmentEnd, status, appointmentId);
+    await ensureNoOverlap(salonId, appointmentStart, appointmentEnd, status, appointmentId);
 
     const [appointment] = await appointmentRepository.updateById(appointmentId, {
       clientId: nextClientId,
@@ -123,20 +128,21 @@ export const appointmentService = {
       notes: body.notes !== undefined
         ? optionalText(body.notes, { max: 1000 })
         : existing.notes,
-    });
+    }, salonId);
 
     return formatAppointment(appointment, client);
   },
 
-  async deleteAppointment(id: string) {
-    await reconcileAppointmentLifecycle();
+  async deleteAppointment(id: string, user?: any) {
+    const salonId = requireSalonId(user);
+    await reconcileAppointmentLifecycle(salonId);
 
     const appointmentId = requireUuid(id);
-    const [existing] = await appointmentRepository.findById(appointmentId);
+    const [existing] = await appointmentRepository.findById(appointmentId, salonId);
     if (!existing) throw notFound("Appointment not found");
 
     if (existing.status === "cancelled") {
-      const [deleted] = await appointmentRepository.deleteById(appointmentId);
+      const [deleted] = await appointmentRepository.deleteById(appointmentId, salonId);
       if (!deleted) throw notFound("Appointment not found");
       return { message: "Cancelled appointment deleted", action: "deleted" };
     }
@@ -145,7 +151,7 @@ export const appointmentService = {
       throw badRequest("Completed appointments cannot be deleted");
     }
 
-    const [cancelled] = await appointmentRepository.cancelById(appointmentId);
+    const [cancelled] = await appointmentRepository.cancelById(appointmentId, salonId);
     if (!cancelled) throw notFound("Appointment not found");
 
     return { message: "Appointment cancelled", action: "cancelled" };

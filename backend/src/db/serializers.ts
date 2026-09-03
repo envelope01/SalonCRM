@@ -1,4 +1,4 @@
-import type { Appointment, Client, Expense, Service, User, Visit, VisitService } from "./schema";
+import type { Appointment, Client, Expense, Salon, Service, User, Visit, VisitService } from "./schema";
 
 const version = (row: { version?: number | null }) => row.version ?? 0;
 
@@ -93,11 +93,44 @@ export function formatVisit(row: Visit, services: VisitService[] = []) {
   };
 }
 
-export function formatAuthUser(row: Pick<User, "id" | "email" | "name" | "role">) {
+export function formatSalon(row: Salon & {
+  ownerName?: string | null;
+  ownerEmail?: string | null;
+  userCount?: number | string | null;
+  staffCount?: number | string | null;
+  customerCount?: number | string | null;
+  appointmentCount?: number | string | null;
+  totalRevenue?: number | string | null;
+  lastActivity?: Date | null;
+}) {
+  return {
+    _id: row.id,
+    name: row.name,
+    isActive: row.isActive,
+    owner: {
+      name: row.ownerName ?? null,
+      email: row.ownerEmail ?? null,
+    },
+    userCount: Number(row.userCount || 0),
+    staffCount: Number(row.staffCount || 0),
+    customerCount: Number(row.customerCount || 0),
+    appointmentCount: Number(row.appointmentCount || 0),
+    totalRevenue: Number(row.totalRevenue || 0),
+    lastActivity: row.lastActivity ?? row.updatedAt,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    __v: version(row),
+  };
+}
+
+export function formatAuthUser(row: Pick<User, "id" | "email" | "name" | "role" | "salonId"> & { salonName?: string | null; mustChangePassword?: boolean | null }) {
   return {
     id: row.id,
     email: row.email,
     name: row.name,
     role: row.role,
+    salonId: row.salonId,
+    salonName: row.salonName ?? null,
+    mustChangePassword: Boolean(row.mustChangePassword),
   };
 }

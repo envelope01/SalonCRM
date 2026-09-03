@@ -8,6 +8,14 @@ import { userRepository } from "../repositories/userRepository";
 
 const JWT_SECRET = env.JWT_SECRET;
 
+function signUserToken(user: { id: string; email: string; role: string; salonId?: string | null }) {
+  return jwt.sign(
+    { userId: user.id, email: user.email, role: user.role, salonId: user.salonId ?? null },
+    JWT_SECRET,
+    { expiresIn: "7d" },
+  );
+}
+
 export const authService = {
   async register(body: any) {
     const { email, password, name, role } = body;
@@ -41,11 +49,7 @@ export const authService = {
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) throw badRequest("Invalid password credentials");
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+    const token = signUserToken(user);
 
     return {
       token,
@@ -61,5 +65,34 @@ export const authService = {
     if (!user) throw unauthorized("User not found");
 
     return formatAuthUser(user);
+  },
+
+  async changePassword(body: any, user?: any) {
+    if (!user?.id) throw unauthorized("Not authenticated");
+
+    const currentPassword = requirePassword(body.currentPassword);
+    const newPassword = requirePassword(body.newPassword);
+    if (currentPassword === newPassword) {
+      throw badRequest("New password must be different from current password");
+    }
+
+    const [authUser] = await userRepository.findByEmail(user.email);
+    if (!authUser || authUser.id !== user.id) throw unauthorized("User not found");
+
+    const ok = await bcrypt.compare(currentPassword, authUser.passwordHash);
+    if (!ok) throw badRequest("Current password is incorrect");
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const [updated] = await userRepository.updatePassword(user.id, {
+      passwordHash,
+      mustChangePassword: false,
+    });
+
+    return {
+      user: formatAuthUser({
+        ...updated,
+        salonName: authUser.salonName,
+      }),
+    };
   },
 };

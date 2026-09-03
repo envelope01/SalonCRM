@@ -3,23 +3,23 @@ import { db } from "../db";
 import { clients, visits } from "../db/schema";
 
 export const clientRepository = {
-  create(values: { name: string; phone: string | null; notes: string }) {
+  create(values: { name: string; phone: string | null; notes: string; salonId: string }) {
     return db.insert(clients).values(values).returning();
   },
 
-  findActive() {
+  findActive(salonId: string) {
     return db
       .select()
       .from(clients)
-      .where(eq(clients.isActive, true))
+      .where(and(eq(clients.salonId, salonId), eq(clients.isActive, true)))
       .orderBy(asc(clients.name));
   },
 
-  findById(id: string) {
+  findById(id: string, salonId: string) {
     return db
       .select()
       .from(clients)
-      .where(eq(clients.id, id))
+      .where(and(eq(clients.id, id), eq(clients.salonId, salonId)))
       .limit(1);
   },
 
@@ -37,19 +37,20 @@ export const clientRepository = {
       .groupBy(visits.clientId);
   },
 
-  findActiveByPhone(phone: string) {
+  findActiveByPhone(phone: string, salonId: string) {
     return db
       .select()
       .from(clients)
-      .where(and(eq(clients.phone, phone), eq(clients.isActive, true)))
+      .where(and(eq(clients.salonId, salonId), eq(clients.phone, phone), eq(clients.isActive, true)))
       .limit(1);
   },
 
-  findActiveByPhoneExceptId(phone: string, id: string) {
+  findActiveByPhoneExceptId(phone: string, id: string, salonId: string) {
     return db
       .select()
       .from(clients)
       .where(and(
+        eq(clients.salonId, salonId),
         eq(clients.phone, phone),
         eq(clients.isActive, true),
         ne(clients.id, id),
@@ -57,32 +58,33 @@ export const clientRepository = {
       .limit(1);
   },
 
-  searchActive(query: string) {
+  searchActive(query: string, salonId: string) {
     const term = `%${query}%`;
 
     return db
       .select()
       .from(clients)
       .where(and(
+        eq(clients.salonId, salonId),
         eq(clients.isActive, true),
         or(ilike(clients.name, term), ilike(clients.phone, term)),
       ))
       .limit(10);
   },
 
-  updateById(id: string, updates: Record<string, unknown>) {
+  updateById(id: string, updates: Record<string, unknown>, salonId: string) {
     return db
       .update(clients)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(clients.id, id))
+      .where(and(eq(clients.id, id), eq(clients.salonId, salonId)))
       .returning();
   },
 
-  deactivateById(id: string) {
+  deactivateById(id: string, salonId: string) {
     return db
       .update(clients)
       .set({ isActive: false, updatedAt: new Date() })
-      .where(eq(clients.id, id))
+      .where(and(eq(clients.id, id), eq(clients.salonId, salonId)))
       .returning();
   },
 };

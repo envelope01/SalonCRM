@@ -1,4 +1,3 @@
-/** @type {import('tailwindcss').Config} */
 const plugin = require('tailwindcss/plugin');
 
 module.exports = {
@@ -12,19 +11,17 @@ module.exports = {
         primary: '#540863',
         accent: '#92487a',
         brandPink: '#d63384',
-        // Adding softer variants for mobile UI states
         surface: '#f9fafb',
       },
       borderRadius: {
         'xl': '1rem',
         '2xl': '1.5rem',
-        '3xl': '2rem', // Perfect for mobile cards
+        '3xl': '2rem',
       },
       boxShadow: {
         card: '0 4px 6px rgba(0,0,0,0.05)',
         'soft-xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       },
-      // Animation for the Bottom Sheet
       keyframes: {
         'slide-up': {
           '0%': { transform: 'translateY(100%)' },
@@ -42,7 +39,6 @@ module.exports = {
     },
   },
   plugins: [
-    // Custom plugin to handle 3D Flip Utilities
     plugin(function({ addUtilities }) {
       addUtilities({
         '.perspective-1000': {

@@ -9,16 +9,10 @@ import { toast } from "../notifications/toastBus";
 function LoginPage({ setUser }) {
   const navigate = useNavigate();
 
-  /* ======================
-     FORM STATE
-     ====================== */
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* ======================
-     SUBMIT HANDLER
-     ====================== */
   const submit = async (e) => {
     e.preventDefault();
 
@@ -36,70 +30,62 @@ function LoginPage({ setUser }) {
       setUser(res.data.user);
       toast.success("Logged in successfully");
 
-      navigate("/");
+      if (res.data.user?.mustChangePassword) {
+        navigate("/change-password", { replace: true });
+        return;
+      }
+
+      navigate(["admin", "dev"].includes(res.data.user?.role) ? "/admin" : "/");
     } catch {
     } finally {
       setLoading(false);
     }
   };
 
-  /* ======================
-     UI
-     ====================== */
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center p-5 bg-gradient-to-br from-primary via-accent to-brandPink relative overflow-hidden">
-      
-      {/* DECORATIVE BACKGROUND BLOBS */}
-      <div className="absolute top-[-10%] left-[-10%] w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-brandPink/40 rounded-full blur-3xl pointer-events-none" />
+    <div className="flex min-h-screen w-full items-start justify-center bg-[radial-gradient(circle_at_top,#fff7fb_0,#f9fafb_42%,#f3f4f6_100%)] px-5 py-10 sm:items-center">
+      <div className="w-full max-w-md">
+        <motion.div
+          initial={{ opacity: 0, y: -14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="mb-5 text-center"
+        >
+          <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <img src="/logo.png" alt="SalonCRM" className="h-full w-full object-cover" />
+          </div>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-gray-950">SalonCRM</h1>
+        </motion.div>
 
-      {/* BRANDING HEADER */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        transition={{ duration: 0.5 }}
-        className="text-center text-white mb-8 relative z-10"
-      >
-        <h1 className="text-5xl font-black tracking-tight drop-shadow-lg">
-          Nutan's
-        </h1>
-        <p className="text-sm font-bold tracking-[0.3em] uppercase mt-2 opacity-90 drop-shadow">
-          Beauty Lounge
-        </p>
-      </motion.div>
-
-      {/* LOGIN CARD */}
       <motion.div 
         initial={{ opacity: 0, y: 40 }} 
         animate={{ opacity: 1, y: 0 }} 
         transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 25 }}
-        className="w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl relative z-10"
+        className="w-full rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-7"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-black text-gray-900">Welcome Back</h2>
-          <p className="text-sm text-gray-400 font-medium mt-1">Sign in to your dashboard</p>
+        <div className="mb-6 text-center">
+          <h2 className="text-xl font-semibold text-gray-950">Sign in</h2>
+          <p className="mt-1 text-sm font-medium text-gray-500">Access your workspace securely.</p>
         </div>
 
-        <form onSubmit={submit} className="space-y-5">
-          {/* Email Input */}
+        <form onSubmit={submit} className="space-y-4">
           <div>
             <input
               type="email"
               autoComplete="email"
-              className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/30 transition-all placeholder:font-medium placeholder:text-gray-400"
-              placeholder="Email Address"
+              className="input-soft"
+              placeholder="Email address"
               value={email}
               maxLength="254"
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
-          {/* Password Input */}
           <div>
             <input
               type="password"
               autoComplete="current-password"
-              className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/30 transition-all placeholder:font-medium placeholder:text-gray-400"
+              className="input-soft"
               placeholder="Password"
               value={password}
               maxLength="128"
@@ -107,11 +93,10 @@ function LoginPage({ setUser }) {
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gray-900 text-white py-4 mt-2 rounded-2xl font-bold text-base shadow-xl shadow-gray-900/20 active:scale-95 transition-transform disabled:opacity-70 disabled:active:scale-100"
+            className="btn-primary mt-2 w-full"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -127,13 +112,14 @@ function LoginPage({ setUser }) {
           </button>
         </form>
 
-        {/* Footer Link (Optional, good for polish) */}
-        <div className="mt-8 text-center">
-          <p className="text-xs font-bold text-gray-400">
-            Salon CRM System v1.0
+        <div className="mt-7 text-center">
+          <p className="mb-3 text-xs font-medium leading-relaxed text-gray-500">
+            Forgot password? Ask your salon owner or platform admin for a new temporary password.
           </p>
+          <p className="text-xs font-medium text-gray-400">Professional salon management</p>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 }

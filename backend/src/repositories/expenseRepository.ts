@@ -3,12 +3,12 @@ import { db } from "../db";
 import { expenses } from "../db/schema";
 
 export const expenseRepository = {
-  create(values: { date: Date; category: string; amount: number; notes: string }) {
+  create(values: { date: Date; category: string; amount: number; notes: string; salonId: string }) {
     return db.insert(expenses).values(values).returning();
   },
 
-  findByDateRange(from?: Date, to?: Date) {
-    const filters = [];
+  findByDateRange(salonId: string, from?: Date, to?: Date) {
+    const filters = [eq(expenses.salonId, salonId)];
 
     if (from) filters.push(gte(expenses.date, from));
     if (to) {
@@ -17,12 +17,10 @@ export const expenseRepository = {
       filters.push(lte(expenses.date, toDate));
     }
 
-    return filters.length > 0
-      ? db.select().from(expenses).where(and(...filters)).orderBy(desc(expenses.date))
-      : db.select().from(expenses).orderBy(desc(expenses.date));
+    return db.select().from(expenses).where(and(...filters)).orderBy(desc(expenses.date));
   },
 
-  deleteById(id: string) {
-    return db.delete(expenses).where(eq(expenses.id, id)).returning();
+  deleteById(id: string, salonId: string) {
+    return db.delete(expenses).where(and(eq(expenses.id, id), eq(expenses.salonId, salonId))).returning();
   },
 };

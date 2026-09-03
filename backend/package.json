@@ -15,6 +15,9 @@
     "db:push:prod": "drizzle-kit push --verbose",
     "db:push:prod:force": "drizzle-kit push --verbose --force",
     "db:check:tables": "tsx scripts/check-pg-tables.ts",
+    "db:backfill:demo": "cross-env NODE_ENV=development tsx scripts/backfill-demo-tenant.ts",
+    "db:seed:local-demo": "cross-env NODE_ENV=development tsx scripts/seed-local-demo-tenant.ts",
+    "db:repair:local": "cross-env NODE_ENV=development tsx scripts/repair-local-tenant-db.ts",
     "render:build": "npm run db:migrate:prod",
     "render:start": "npm run db:migrate:prod && npm start"
   },

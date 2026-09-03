@@ -1,6 +1,7 @@
 import { badRequest } from "../lib/httpErrors";
 import { optionalDate } from "../lib/validation";
 import { reportRepository } from "../repositories/reportRepository";
+import { requireSalonId } from "./tenantContext";
 
 function dateLabel(date: Date) {
   const y = date.getFullYear();
@@ -10,7 +11,7 @@ function dateLabel(date: Date) {
 }
 
 export const reportService = {
-  async getSummary(query: any) {
+  async getSummary(query: any, user?: any) {
     const { from, to } = query;
     const parsedFrom = optionalDate(from, "From date");
     const parsedTo = optionalDate(to, "To date");
@@ -25,7 +26,7 @@ export const reportService = {
       throw badRequest("From date cannot be after to date");
     }
 
-    const rows = await reportRepository.getSummaryRows(startDate, endDate);
+    const rows = await reportRepository.getSummaryRows(requireSalonId(user), startDate, endDate);
     const totalEarnings = Number(rows.earningsTotals?.totalEarnings || 0);
     const totalVisits = Number(rows.earningsTotals?.totalVisits || 0);
     const totalExpenses = Number(rows.expenseTotals?.totalExpenses || 0);

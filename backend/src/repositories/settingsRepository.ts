@@ -1,13 +1,13 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../db";
 import { appSettings } from "../db/schema";
 
 export const settingsRepository = {
-  findAll() {
-    return db.select().from(appSettings);
+  findAll(salonId: string) {
+    return db.select().from(appSettings).where(eq(appSettings.salonId, salonId));
   },
 
-  async upsertMany(values: Record<string, string>) {
+  async upsertMany(values: Record<string, string>, salonId: string) {
     const entries = Object.entries(values);
 
     if (entries.length === 0) {
@@ -20,9 +20,9 @@ export const settingsRepository = {
       for (const [key, value] of entries) {
         const [row] = await tx
           .insert(appSettings)
-          .values({ key, value })
+          .values({ key, value, salonId })
           .onConflictDoUpdate({
-            target: appSettings.key,
+            target: [appSettings.salonId, appSettings.key],
             set: {
               value,
               updatedAt: sql`now()`,
@@ -38,7 +38,7 @@ export const settingsRepository = {
     });
   },
 
-  deleteByKey(key: string) {
-    return db.delete(appSettings).where(eq(appSettings.key, key)).returning();
+  deleteByKey(key: string, salonId: string) {
+    return db.delete(appSettings).where(and(eq(appSettings.key, key), eq(appSettings.salonId, salonId))).returning();
   },
 };

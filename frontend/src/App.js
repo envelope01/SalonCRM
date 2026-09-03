@@ -1,15 +1,12 @@
-// src/App.js
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 
-/* =========================
-   PAGES
-   ========================= */
 import ClientsPage from "./pages/ClientsPage";
 import ClientDetailPage from "./pages/ClientDetailPage";
 import AppointmentsPage from "./pages/AppointmentsPage";
@@ -17,141 +14,207 @@ import ServicesPage from "./pages/ServicesPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import LoginPage from "./pages/LoginPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 
-/* =========================
-   COMPONENTS & UTILS
-   ========================= */
 import BottomNav from "./components/BottomNav";
 import { getCurrentUser } from "./api";
+import { getToken, saveAuth } from "./api/authStorage";
+import { authService } from "./services/authService";
 import { ConfirmDialogProvider } from "./dialogs/ConfirmDialogProvider";
 import { ToastProvider } from "./notifications/ToastProvider";
 
-/* =========================
-   STYLES
-   ========================= */
-import "./index.css"; 
+import "./index.css";
 
-const privilegedRoles = new Set(["owner", "admin", "dev"]);
+const ownerOnlyRoles = new Set(["owner"]);
 
 function hasPrivilegedAccess(user) {
-  return privilegedRoles.has(user?.role);
+  return ownerOnlyRoles.has(user?.role);
+}
+
+function isAdminDashboardUser(user) {
+  return user?.role === "admin" || user?.role === "dev";
+}
+
+function isPlatformUser(user) {
+  return user?.role === "admin" || user?.role === "dev";
+}
+
+function AppShell({ user, setUser }) {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith("/admin");
+  const mainClassName = isAdminPage
+    ? "flex-1 w-full"
+    : "flex-1 w-full max-w-3xl mx-auto pb-24 md:pb-0 md:border-x md:border-gray-100 md:shadow-sm";
+  const mustChangePassword = Boolean(user?.mustChangePassword);
+
+  const salonHome = isPlatformUser(user) ? <Navigate to="/admin" replace /> : <AppointmentsPage />;
+  const changePasswordRoute = user ? <ChangePasswordPage user={user} setUser={setUser} /> : <Navigate to="/login" replace />;
+
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50 font-sans">
+      <main className={mainClassName}>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              user ? (
+                <Navigate to={isAdminDashboardUser(user) ? "/admin" : "/"} replace />
+              ) : (
+                <LoginPage setUser={setUser} />
+              )
+            }
+          />
+
+          <Route
+            path="/"
+            element={
+              user ? (mustChangePassword ? <Navigate to="/change-password" replace /> : salonHome) : <Navigate to="/login" replace />
+            }
+          />
+
+          <Route path="/change-password" element={changePasswordRoute} />
+
+          <Route
+            path="/admin"
+            element={
+              user ? (
+                mustChangePassword ? (
+                  <Navigate to="/change-password" replace />
+                ) : isAdminDashboardUser(user) ? <AdminDashboardPage /> : <Navigate to="/" replace />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/clients"
+            element={
+              user ? (
+                mustChangePassword ? (
+                  <Navigate to="/change-password" replace />
+                ) : isPlatformUser(user) ? <Navigate to="/admin" replace /> : <ClientsPage />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/clients/:id"
+            element={
+              user ? (
+                mustChangePassword ? (
+                  <Navigate to="/change-password" replace />
+                ) : isPlatformUser(user) ? <Navigate to="/admin" replace /> : <ClientDetailPage />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/appointments"
+            element={
+              user ? <Navigate to="/" replace /> : <Navigate to="/login" replace />
+            }
+          />
+
+          <Route
+            path="/services"
+            element={
+              user ? (
+                mustChangePassword ? (
+                  <Navigate to="/change-password" replace />
+                ) : isPlatformUser(user) ? <Navigate to="/admin" replace /> : <ServicesPage />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/reports"
+            element={
+              user ? (
+                  mustChangePassword ? (
+                    <Navigate to="/change-password" replace />
+                  ) : isPlatformUser(user) ? (
+                  <Navigate to="/admin" replace />
+                ) : hasPrivilegedAccess(user) ? (
+                  <ReportsPage />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/settings"
+            element={
+              user ? (
+                  mustChangePassword ? (
+                    <Navigate to="/change-password" replace />
+                  ) : isPlatformUser(user) ? (
+                  <Navigate to="/admin" replace />
+                ) : hasPrivilegedAccess(user) ? (
+                  <SettingsPage />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+        </Routes>
+      </main>
+
+      {user && !mustChangePassword && !isPlatformUser(user) && <BottomNav user={user} />}
+    </div>
+  );
 }
 
 function App() {
-  /* =========================
-     STATE
-     ========================= */
   const [user, setUser] = useState(null);
 
-  /* =========================
-     INIT AUTH STATE
-     ========================= */
+  useEffect(() => {
+    if (!user) {
+      document.title = "SalonCRM Login";
+      return;
+    }
+
+    document.title = isAdminDashboardUser(user)
+      ? "Admin Dashboard"
+      : user.salonName || "SalonCRM";
+  }, [user]);
+
   useEffect(() => {
     const currentUser = getCurrentUser();
     setUser(currentUser);
+
+    if (getToken()) {
+      authService.me()
+        .then((res) => {
+          const refreshedUser = res.data?.user;
+          if (refreshedUser) {
+            saveAuth(getToken(), refreshedUser);
+            setUser(refreshedUser);
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
-  /* =========================
-     HANDLERS
-     ========================= */
-
-
-  /* =========================
-     ROUTER
-     ========================= */
   return (
     <ToastProvider>
       <ConfirmDialogProvider>
         <Router>
-          {/* FIX 1: Removed 'h-screen overflow-hidden'.
-            Replaced with 'min-h-screen bg-gray-50' to allow native mobile scrolling.
-          */}
-          <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
-
-        {/* DESKTOP NAVBAR (Will be hidden on mobile via CSS inside Navbar usually) */}
-
-
-        {/* FIX 2: Removed 'p-4' and 'overflow-hidden'.
-          Our redesigned pages handle their own padding and scrolling now!
-          Added 'pb-24 md:pb-0' to guarantee the BottomNav NEVER covers the very bottom content.
-        */}
-        <main className="flex-1 w-full max-w-3xl mx-auto pb-24 md:pb-0 md:border-x md:border-gray-100 md:shadow-sm">
-          <Routes>
-            {/* AUTH */}
-            <Route
-              path="/login"
-              element={
-                user ? (
-                  <Navigate to="/" replace />
-                ) : (
-                  <LoginPage setUser={setUser} />
-                )
-              }
-            />
-
-            {/* PROTECTED ROUTES */}
-            <Route
-              path="/"
-              element={
-                user ? <AppointmentsPage /> : <Navigate to="/login" replace />
-              }
-            />
-
-            <Route
-              path="/clients"
-              element={
-                user ? <ClientsPage /> : <Navigate to="/login" replace />
-              }
-            />
-
-            <Route
-              path="/clients/:id"
-              element={
-                user ? <ClientDetailPage /> : <Navigate to="/login" replace />
-              }
-            />
-
-            <Route
-              path="/appointments"
-              element={
-                user ? <Navigate to="/" replace /> : <Navigate to="/login" replace />
-              }
-            />
-
-            <Route
-              path="/services"
-              element={
-                user ? <ServicesPage /> : <Navigate to="/login" replace />
-              }
-            />
-
-            <Route
-              path="/reports"
-              element={
-                user ? (
-                  hasPrivilegedAccess(user) ? <ReportsPage /> : <Navigate to="/" replace />
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              }
-            />
-
-            <Route
-              path="/settings"
-              element={
-                user ? (
-                  hasPrivilegedAccess(user) ? <SettingsPage /> : <Navigate to="/" replace />
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              }
-            />
-          </Routes>
-        </main>
-
-        {/* MOBILE BOTTOM NAV */}
-        {user && <BottomNav user={user} />}
-          </div>
+          <AppShell user={user} setUser={setUser} />
         </Router>
       </ConfirmDialogProvider>
     </ToastProvider>

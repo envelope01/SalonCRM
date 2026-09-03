@@ -17,15 +17,59 @@ import {
 } from "../utils/validation";
 import { toast } from "../notifications/toastBus";
 
-/* ======================================================
-   CLIENT DETAIL PAGE (MOBILE PREMIUM)
-   ====================================================== */
+function Icon({ children, className = "w-5 h-5" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
+}
+
+const icons = {
+  phone: (
+    <Icon>
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.78.6 2.63a2 2 0 0 1-.45 2.11L8 9.72a16 16 0 0 0 6.28 6.28l1.26-1.26a2 2 0 0 1 2.11-.45c.85.28 1.73.48 2.63.6A2 2 0 0 1 22 16.92z" />
+    </Icon>
+  ),
+  whatsapp: (
+    <Icon>
+      <path d="M20 11.5a8 8 0 0 1-11.8 7.02L4 20l1.48-4.2A8 8 0 1 1 20 11.5z" />
+      <path d="M9.5 8.5c.2 2 1.8 4.1 4 5.1l1.2-1.1 2 .8c-.3 1.2-1.2 2-2.5 2-2.8 0-6.5-3.6-6.5-6.4 0-1.3.8-2.2 2-2.5l.8 2.1-.5 0z" />
+    </Icon>
+  ),
+  edit: (
+    <Icon>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+    </Icon>
+  ),
+  bill: (
+    <Icon>
+      <path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z" />
+      <path d="M9 7h6" />
+      <path d="M9 11h6" />
+      <path d="M9 15h4" />
+    </Icon>
+  ),
+  history: (
+    <Icon>
+      <path d="M3 12a9 9 0 1 0 3-6.7" />
+      <path d="M3 3v6h6" />
+      <path d="M12 7v5l3 2" />
+    </Icon>
+  ),
+  check: (
+    <Icon className="w-3 h-3">
+      <path d="M20 6L9 17l-5-5" />
+    </Icon>
+  ),
+};
+
 function ClientDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const confirm = useConfirm();
 
-  /* ---------------- STATE ---------------- */
   const [client, setClient] = useState(null);
   const [services, setServices] = useState([]);
   const [visits, setVisits] = useState([]);
@@ -38,13 +82,11 @@ function ClientDetailPage() {
     billDiscountLineTemplate: appConfig.billDiscountLineTemplate,
   });
 
-  // Edit Client State
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", notes: "" });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isDeletingClient, setIsDeletingClient] = useState(false);
 
-  // New Bill State
   const [visitDate, setVisitDate] = useState("");
   const [visitServices, setVisitServices] = useState([]);
   const [discountPercent, setDiscountPercent] = useState("");
@@ -53,9 +95,6 @@ function ClientDetailPage() {
   const [isSavingVisit, setIsSavingVisit] = useState(false);
   const [deletingVisitId, setDeletingVisitId] = useState("");
 
-  /* ======================================================
-     GUARD & LOAD DATA
-     ====================================================== */
   useEffect(() => {
     if (!id) navigate("/", { replace: true });
   }, [id, navigate]);
@@ -82,16 +121,13 @@ function ClientDetailPage() {
           setBillSettings((current) => ({ ...current, ...settingsRes.data }));
         }
         setVisitDate(new Date().toISOString().slice(0, 10));
-      } catch (err) {
-        console.error("Failed to load client data", err);
+      } catch {
+        toast.error("Unable to load client profile");
       }
     };
     load();
   }, [id]);
 
-  /* ======================================================
-     HANDLERS
-     ====================================================== */
   const saveClient = async () => {
     const validationError = clientValidationError(form);
     if (validationError) {
@@ -404,53 +440,48 @@ function ClientDetailPage() {
   const clientPhone = String(client.phone || "").replace(/\D/g, "");
   const hasPhone = clientPhone.length > 0;
 
-  /* ======================================================
-     RENDER
-     ====================================================== */
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 pb-20">
       <TopHeader title="Client Profile" showBack={true} />
 
-      <main className="p-4 space-y-6 flex-1">
-        
-        {/* PROFILE HERO CARD */}
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100 relative overflow-hidden text-center mt-4">
-          <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-r from-primary/10 to-brandPink/10" />
+      <main className="flex-1 space-y-4 p-4">
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="relative mt-2 overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-sm">
+          <div className="absolute left-0 top-0 h-14 w-full bg-gradient-to-r from-primary/8 to-brandPink/8" />
           
-          <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary to-brandPink text-white flex items-center justify-center font-black text-2xl shadow-lg shadow-brandPink/20 relative z-10 border-4 border-white mb-3">
+          <div className="relative z-10 mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white bg-primary text-xl font-semibold text-white shadow-sm shadow-brandPink/20">
             {initials(client.name)}
           </div>
           
-          <h2 className="text-xl font-black text-gray-900">{client.name}</h2>
+          <h2 className="text-lg font-semibold text-gray-950">{client.name}</h2>
           {hasPhone && (
             <p className="text-sm font-semibold text-gray-500 mt-1">{clientPhone}</p>
           )}
           
           {client.notes && (
-            <div className="mt-3 bg-gray-50 p-3 rounded-2xl text-xs text-gray-600 italic">
-              "{client.notes}"
+            <div className="mt-3 rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
+              {client.notes}
             </div>
           )}
 
           <div className="flex justify-center gap-3 mt-5">
             {hasPhone && (
               <>
-            <a href={`tel:${clientPhone}`} className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform">
-              📞
+            <a href={`tel:${clientPhone}`} className="flex h-11 w-11 items-center justify-center rounded-xl bg-brandPink/10 text-brandPink transition-transform active:scale-95" aria-label={`Call ${client.name}`}>
+              {icons.phone}
             </a>
-            <a href={`https://wa.me/91${clientPhone}`} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-2xl bg-green-50 text-green-500 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform">
-              💬
+            <a href={`https://wa.me/91${clientPhone}`} target="_blank" rel="noreferrer" className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-green-500 transition-transform active:scale-95" aria-label={`WhatsApp ${client.name}`}>
+              {icons.whatsapp}
             </a>
               </>
             )}
-            <button onClick={() => setShowEditSheet(true)} className="w-12 h-12 rounded-2xl bg-gray-100 text-gray-600 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform">
-              ✎
+            <button onClick={() => setShowEditSheet(true)} className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-transform active:scale-95" aria-label="Edit client">
+              {icons.edit}
             </button>
             <button
               type="button"
               disabled={isDeletingClient}
               onClick={deleteClient}
-              className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shadow-sm active:scale-95 transition-transform disabled:opacity-60"
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-500 transition-transform active:scale-95 disabled:opacity-60"
               aria-label="Delete client"
             >
               {isDeletingClient ? "..." : <TrashIcon className="h-5 w-5" />}
@@ -459,23 +490,21 @@ function ClientDetailPage() {
 
         </motion.div>
 
-        {/* NEW BILL (RECEIPT CARD) */}
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="bg-white rounded-[2.5rem] p-6 shadow-lg shadow-gray-200/50 border border-gray-100">
-          <h3 className="font-black text-gray-900 mb-4 flex items-center gap-2">
-            <span>📝</span> New Bill
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+          <h3 className="mb-4 flex items-center gap-2 font-semibold text-gray-950">
+            <span className="text-brandPink">{icons.bill}</span> New Bill
           </h3>
 
           <div className="space-y-4">
             <input
               type="date"
               required
-              className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-bold text-gray-700 outline-none"
+              className="input-soft"
               value={visitDate}
               onChange={(e) => setVisitDate(e.target.value)}
             />
 
-            {/* Services List (The Receipt) */}
-            <div className="bg-gray-50 rounded-2xl p-4 border border-dashed border-gray-200">
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-4">
               {visitServices.length === 0 ? (
                 <div className="text-center text-gray-400 py-4 text-sm font-medium">Tap below to add services</div>
               ) : (
@@ -483,8 +512,8 @@ function ClientDetailPage() {
                   <AnimatePresence>
                     {visitServices.map((s, i) => (
                       <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, height: 0 }} key={i} className="flex justify-between items-center group">
-                        <div className="flex items-center gap-2 flex-1">
-                          <button onClick={() => removeService(i)} className="w-6 h-6 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-xs font-bold active:scale-90">×</button>
+                        <div className="flex flex-1 items-center gap-2">
+                          <button type="button" onClick={() => removeService(i)} className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-xs font-bold text-rose-500 active:scale-95">×</button>
                           <span className="text-sm font-bold text-gray-700">{s.name}</span>
                         </div>
                         <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-gray-200">
@@ -506,11 +535,11 @@ function ClientDetailPage() {
               )}
             </div>
 
-            <button onClick={() => setShowServicePicker(true)} className="w-full border-2 border-dashed border-brandPink/30 text-brandPink font-bold py-3 rounded-2xl active:bg-brandPink/5 transition-colors">
+            <button type="button" onClick={() => setShowServicePicker(true)} className="w-full rounded-xl border border-dashed border-brandPink/30 py-3 text-sm font-semibold text-brandPink transition-colors active:bg-brandPink/5">
               + Add Service
             </button>
 
-            <div className="grid grid-cols-[1fr_auto] gap-3 items-center bg-gray-50 p-4 rounded-2xl">
+            <div className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-2xl bg-gray-50 p-4">
               <label className="text-xs font-bold text-gray-500 uppercase" htmlFor="bill-discount">
                 Discount
               </label>
@@ -521,19 +550,19 @@ function ClientDetailPage() {
                   min="0"
                   max="100"
                   step="1"
-                  className="w-14 bg-transparent text-right text-sm font-black text-gray-900 focus:outline-none"
+                  className="w-14 bg-transparent text-right text-sm font-semibold text-gray-900 focus:outline-none"
                   value={discountPercent}
                   onChange={(e) => handleDiscountChange(e.target.value)}
                   onClick={(e) => e.target.select()}
                 />
-                <span className="text-xs font-black text-brandPink">%</span>
+                <span className="text-xs font-semibold text-brandPink">%</span>
               </div>
             </div>
 
             <input
               type="text"
               placeholder="Any remarks? (Optional)"
-              className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm outline-none"
+              className="input-soft"
               value={visitNotes}
               maxLength="1000"
               onChange={(e) => setVisitNotes(e.target.value)}
@@ -553,13 +582,13 @@ function ClientDetailPage() {
                 )}
                 <div className="flex justify-between items-end border-t border-gray-200 pt-2">
                   <span className="text-[10px] font-bold text-gray-400 uppercase">Total Amount</span>
-                  <span className="text-2xl font-black text-gray-900">&#8377;{formatMoney(discountedTotal)}</span>
+                  <span className="text-xl font-semibold text-gray-950">&#8377;{formatMoney(discountedTotal)}</span>
                 </div>
               </div>
               <button 
                 onClick={() => addVisit({ sendWhatsApp: hasPhone })} 
                 disabled={isSavingVisit}
-                className="w-full bg-primary text-white px-4 py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-50"
+                className="btn-primary w-full"
               >
                 {isSavingVisit ? "Saving..." : hasPhone ? "Save & WhatsApp" : "Save"}
               </button>
@@ -567,10 +596,9 @@ function ClientDetailPage() {
           </div>
         </motion.div>
 
-        {/* TIMELINE (VISIT HISTORY) */}
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100">
-          <h3 className="font-black text-gray-900 mb-6 flex items-center gap-2">
-            <span>🕰️</span> Visit History
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+          <h3 className="mb-5 flex items-center gap-2 font-semibold text-gray-950">
+            <span className="text-brandPink">{icons.history}</span> Visit History
           </h3>
 
           <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
@@ -578,19 +606,17 @@ function ClientDetailPage() {
             
             {visits.map((v) => (
               <div key={v._id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                {/* Timeline Dot */}
                 <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-brandPink text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                  <span className="text-[10px] font-bold">✓</span>
+                  {icons.check}
                 </div>
                 
-                {/* Content Card */}
                 <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-gray-50 p-4 rounded-2xl border border-gray-100">
                   <div className="flex justify-between items-start gap-3 mb-1">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                       {formatVisitDate(v.visitDate)}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-black text-primary">₹{v.totalAmount}</span>
+                      <span className="text-sm font-semibold text-primary">₹{v.totalAmount}</span>
                       <button
                         type="button"
                         disabled={deletingVisitId === v._id}
@@ -614,18 +640,17 @@ function ClientDetailPage() {
 
       </main>
 
-      {/* BOTTOM SHEET: EDIT PROFILE */}
       <AnimatePresence>
         {showEditSheet && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 z-50 flex items-end" onClick={() => setShowEditSheet(false)}>
-            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="bg-white w-full rounded-t-[2.5rem] p-8 pb-12" onClick={(e) => e.stopPropagation()}>
-              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
-              <h2 className="text-xl font-black mb-6 text-gray-900">Edit Profile</h2>
+            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="bottom-sheet" onClick={(e) => e.stopPropagation()}>
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+              <h2 className="mb-5 text-lg font-semibold text-gray-950">Edit Profile</h2>
               <div className="space-y-4">
-                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.name} maxLength="120" onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full Name" />
-                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.phone} inputMode="numeric" maxLength="10" onChange={(e) => setForm({ ...form, phone: normalizePhoneInput(e.target.value) })} placeholder="Phone Number (optional)" />
-                <input className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none" value={form.notes} maxLength="1000" onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" />
-                <button onClick={saveClient} disabled={isSavingProfile} className="w-full bg-primary text-white py-4 rounded-2xl font-bold mt-2 shadow-lg shadow-primary/20 disabled:opacity-70">
+                <input className="input-soft" value={form.name} maxLength="120" onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full Name" />
+                <input className="input-soft" value={form.phone} inputMode="numeric" maxLength="10" onChange={(e) => setForm({ ...form, phone: normalizePhoneInput(e.target.value) })} placeholder="Phone Number (optional)" />
+                <input className="input-soft" value={form.notes} maxLength="1000" onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" />
+                <button onClick={saveClient} disabled={isSavingProfile} className="btn-primary mt-2 w-full">
                   {isSavingProfile ? "Saving..." : "Save Changes"}
                 </button>
               </div>
@@ -634,14 +659,13 @@ function ClientDetailPage() {
         )}
       </AnimatePresence>
 
-      {/* BOTTOM SHEET: SERVICE PICKER */}
       <AnimatePresence>
         {showServicePicker && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 z-50 flex items-end" onClick={() => setShowServicePicker(false)}>
-            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="bg-white w-full h-[70vh] rounded-t-[2.5rem] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="flex h-[70vh] w-full flex-col overflow-hidden rounded-t-3xl bg-white" onClick={(e) => e.stopPropagation()}>
               <div className="p-6 pb-2 border-b border-gray-100 flex-shrink-0 bg-white">
                 <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
-                <h2 className="text-xl font-black text-gray-900">Select Service</h2>
+                <h2 className="text-lg font-semibold text-gray-950">Select Service</h2>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
                 {services.map(s => (
@@ -650,7 +674,7 @@ function ClientDetailPage() {
                       <p className="font-bold text-gray-900">{s.name}</p>
                       <p className="text-[10px] font-bold text-gray-400 uppercase">{s.category || 'General'}</p>
                     </div>
-                    <p className="font-black text-brandPink">₹{s.price}</p>
+                    <p className="font-semibold text-brandPink">₹{s.price}</p>
                   </button>
                 ))}
               </div>

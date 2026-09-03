@@ -8,6 +8,9 @@
     updateClient,
     deleteClient
   } = require("../controllers/clientController");
+  const { authMiddleware } = require("../middleware/authMiddleware");
+
+  router.use(authMiddleware);
 
   // CREATE
   router.post("/", createClient);

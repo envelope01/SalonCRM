@@ -15,3 +15,8 @@ exports.me = asyncHandler(async (req, res) => {
   if (!req.user) return res.status(401).json({ message: "Not authenticated" });
   res.json({ user: req.user });
 });
+
+exports.changePassword = asyncHandler(async (req, res) => {
+  const result = await authService.changePassword(req.body, req.user);
+  res.json(result);
+});

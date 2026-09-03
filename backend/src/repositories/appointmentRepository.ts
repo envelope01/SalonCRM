@@ -4,6 +4,7 @@ import { appointments, clients } from "../db/schema";
 
 type AppointmentValues = {
   clientId: string;
+  salonId: string;
   title: string;
   appointmentStart: Date;
   appointmentEnd: Date;
@@ -12,11 +13,11 @@ type AppointmentValues = {
 };
 
 export const appointmentRepository = {
-  findActiveClientById(id: string) {
+  findActiveClientById(id: string, salonId: string) {
     return db
       .select({ id: clients.id, name: clients.name, phone: clients.phone })
       .from(clients)
-      .where(and(eq(clients.id, id), eq(clients.isActive, true)))
+      .where(and(eq(clients.id, id), eq(clients.salonId, salonId), eq(clients.isActive, true)))
       .limit(1);
   },
 
@@ -24,36 +25,36 @@ export const appointmentRepository = {
     return db.insert(appointments).values(values).returning();
   },
 
-  updateById(id: string, updates: Partial<AppointmentValues>) {
+  updateById(id: string, updates: Partial<Omit<AppointmentValues, "salonId">>, salonId: string) {
     return db
       .update(appointments)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(appointments.id, id))
+      .where(and(eq(appointments.id, id), eq(appointments.salonId, salonId)))
       .returning();
   },
 
-  deleteById(id: string) {
-    return db.delete(appointments).where(eq(appointments.id, id)).returning();
+  deleteById(id: string, salonId: string) {
+    return db.delete(appointments).where(and(eq(appointments.id, id), eq(appointments.salonId, salonId))).returning();
   },
 
-  cancelById(id: string) {
+  cancelById(id: string, salonId: string) {
     return db
       .update(appointments)
       .set({ status: "cancelled", updatedAt: new Date() })
-      .where(eq(appointments.id, id))
+      .where(and(eq(appointments.id, id), eq(appointments.salonId, salonId)))
       .returning();
   },
 
-  findById(id: string) {
+  findById(id: string, salonId: string) {
     return db
       .select()
       .from(appointments)
-      .where(eq(appointments.id, id))
+      .where(and(eq(appointments.id, id), eq(appointments.salonId, salonId)))
       .limit(1);
   },
 
-  findByDateRange(from?: Date, to?: Date, status?: string) {
-    const filters = [];
+  findByDateRange(salonId: string, from?: Date, to?: Date, status?: string) {
+    const filters = [eq(appointments.salonId, salonId)];
 
     if (from) filters.push(gte(appointments.appointmentStart, from));
     if (to) {
@@ -75,13 +76,12 @@ export const appointmentRepository = {
       .from(appointments)
       .innerJoin(clients, eq(appointments.clientId, clients.id));
 
-    return filters.length > 0
-      ? query.where(and(...filters)).orderBy(asc(appointments.appointmentStart))
-      : query.orderBy(asc(appointments.appointmentStart));
+    return query.where(and(...filters)).orderBy(asc(appointments.appointmentStart));
   },
 
-  findOverlapping(start: Date, end: Date, ignoredAppointmentId?: string) {
+  findOverlapping(salonId: string, start: Date, end: Date, ignoredAppointmentId?: string) {
     const filters = [
+      eq(appointments.salonId, salonId),
       lt(appointments.appointmentStart, end),
       gt(appointments.appointmentEnd, start),
       ne(appointments.status, "cancelled"),
@@ -98,21 +98,23 @@ export const appointmentRepository = {
       .limit(1);
   },
 
-  completePastAppointments(now: Date) {
+  completePastAppointments(now: Date, salonId: string) {
     return db
       .update(appointments)
       .set({ status: "completed", updatedAt: now })
       .where(and(
+        eq(appointments.salonId, salonId),
         lt(appointments.appointmentEnd, now),
         inArray(appointments.status, ["scheduled"]),
       ))
       .returning();
   },
 
-  deletePastCancelledAppointments(now: Date) {
+  deletePastCancelledAppointments(now: Date, salonId: string) {
     return db
       .delete(appointments)
       .where(and(
+        eq(appointments.salonId, salonId),
         lt(appointments.appointmentEnd, now),
         eq(appointments.status, "cancelled"),
       ))

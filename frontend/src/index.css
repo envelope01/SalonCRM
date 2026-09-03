@@ -2,20 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* custom design tokens and utilities live in components/utilities layers below */
-
 @layer base {
+  html {
+    @apply bg-gray-50;
+    -webkit-text-size-adjust: 100%;
+  }
 
-  /* base resets or overrides if needed */
   body {
-    /* body overflow will be controlled by layout classes; default hidden to enforce non-scrolling root */
     @apply bg-gray-50 text-gray-900;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
 @layer components {
   .page-container {
-    @apply h-full min-h-0 flex flex-col gap-3 pb-20 md:pb-0;
+    @apply h-full min-h-0 flex flex-col gap-3 pb-24 md:pb-0;
   }
 
   .page-grid {
@@ -23,7 +38,7 @@
   }
 
   .app-card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-3;
+    @apply bg-white rounded-2xl border border-gray-100 p-4 shadow-sm;
   }
 
   .internal-scroll {
@@ -31,7 +46,27 @@
   }
 
   .btn-primary {
-    @apply bg-brandPink text-white rounded-lg px-3 py-1.5 font-medium hover:bg-pink-600 transition-colors min-h-[44px];
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brandPink/20 transition-transform active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100;
+  }
+
+  .btn-secondary {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-xl border border-brandPink/20 bg-white px-4 py-2.5 text-sm font-semibold text-primary transition-colors active:bg-brandPink/5 disabled:opacity-60;
+  }
+
+  .input-soft {
+    @apply w-full rounded-xl border border-transparent bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 outline-none transition focus:border-brandPink/20 focus:ring-2 focus:ring-brandPink/10 placeholder:text-gray-400;
+  }
+
+  .bottom-sheet {
+    @apply w-full rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-xl;
+  }
+
+  .fab-button {
+    @apply fixed bottom-24 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-2xl font-semibold text-white shadow-lg shadow-brandPink/30 transition-transform active:scale-95;
+  }
+
+  .empty-state {
+    @apply mx-auto mt-12 flex max-w-xs flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-5 py-8 text-center text-sm font-medium text-gray-500;
   }
 
   .pb-safe-area-inset-bottom {
@@ -53,30 +88,7 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    /* background-color: #d63384; */
+    background-color: #d1d5db;
     border-radius: 10px;
-  }
-}
-
-@layer components {
-  .btn-primary {
-    @apply py-2 px-4 rounded-lg text-white font-medium transition-all active:scale-95;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 18px;
-    font-weight: 600;
-    color: #fff;
-    background: linear-gradient(135deg, #7b2c61, #d63384);
-    border: none;
-    border-radius: 50px;
-  }
-
-  .btn-primary:hover {
-    @apply opacity-90 shadow-lg;
-    background: linear-gradient(135deg, #8b3c71, #e64394);
-    /* Slightly lighter on hover */
-
-
   }
 }

@@ -2,9 +2,11 @@ import { formatVisit } from "../db/serializers";
 import { badRequest, notFound } from "../lib/httpErrors";
 import { optionalDate, optionalMoney, optionalText, requireUuid } from "../lib/validation";
 import { visitRepository } from "../repositories/visitRepository";
+import { requireSalonId } from "./tenantContext";
 
 export const visitService = {
-  async createVisit(body: any) {
+  async createVisit(body: any, user?: any) {
+    const salonId = requireSalonId(user);
     const { clientId, visitDate, services = [], notes = "" } = body;
 
     if (!clientId) throw badRequest("clientId is required");
@@ -13,12 +15,12 @@ export const visitService = {
     }
 
     const validatedClientId = requireUuid(clientId, "clientId");
-    const [clientExists] = await visitRepository.findClientById(validatedClientId);
+    const [clientExists] = await visitRepository.findClientById(validatedClientId, salonId);
     if (!clientExists) throw notFound("Client not found");
 
     const serviceIds = services.map((service: any) => requireUuid(service.serviceId, "serviceId"));
     const uniqueServiceIds = Array.from(new Set(serviceIds));
-    const dbServices = await visitRepository.findServicesByIds(uniqueServiceIds);
+    const dbServices = await visitRepository.findServicesByIds(uniqueServiceIds, salonId);
     const activeDbServices = dbServices.filter((service) => service.isActive);
 
     if (activeDbServices.length !== uniqueServiceIds.length) {
@@ -50,6 +52,7 @@ export const visitService = {
 
     const result = await visitRepository.createVisitWithServices({
       clientId: validatedClientId,
+      salonId,
       visitDate: optionalDate(visitDate, "Visit date") || new Date(),
       totalAmount,
       notes: optionalText(notes, { max: 1000 }),
@@ -59,8 +62,8 @@ export const visitService = {
     return formatVisit(result.visit, result.lineItems);
   },
 
-  async getClientVisits(clientId: string) {
-    const rows = await visitRepository.findByClientId(requireUuid(clientId, "clientId"));
+  async getClientVisits(clientId: string, user?: any) {
+    const rows = await visitRepository.findByClientId(requireUuid(clientId, "clientId"), requireSalonId(user));
     if (rows.length === 0) return [];
 
     const lineItems = await visitRepository.findLineItemsForVisitIds(rows.map((visit) => visit.id));
@@ -73,8 +76,8 @@ export const visitService = {
     return rows.map((visit) => formatVisit(visit, servicesByVisitId[visit.id] || []));
   },
 
-  async deleteVisit(visitId: string) {
-    const [visit] = await visitRepository.deleteById(requireUuid(visitId, "visitId"));
+  async deleteVisit(visitId: string, user?: any) {
+    const [visit] = await visitRepository.deleteById(requireUuid(visitId, "visitId"), requireSalonId(user));
     if (!visit) throw notFound("Visit not found");
 
     return { message: "Visit deleted" };

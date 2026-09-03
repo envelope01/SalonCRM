@@ -5,6 +5,9 @@ const {
   getClientVisits,
   deleteVisit
 } = require("../controllers/visitController");
+const { authMiddleware } = require("../middleware/authMiddleware");
+
+router.use(authMiddleware);
 
 router.post("/", createVisit);
 router.get("/client/:clientId", getClientVisits);

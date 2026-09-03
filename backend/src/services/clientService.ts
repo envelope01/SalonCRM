@@ -7,6 +7,7 @@ import {
   requireUuid,
 } from "../lib/validation";
 import { clientRepository } from "../repositories/clientRepository";
+import { requireSalonId } from "./tenantContext";
 
 const allowedUpdateFields = ["name", "phone", "notes", "isActive"];
 
@@ -26,14 +27,15 @@ async function addVisitSummaries(clients: any[]) {
 }
 
 export const clientService = {
-  async createClient(body: any) {
+  async createClient(body: any, user?: any) {
+    const salonId = requireSalonId(user);
     const { name, phone, notes = "" } = body;
 
     if (!name) throw badRequest("Name is required");
 
     const normalizedPhone = optionalPhone(phone);
     if (typeof normalizedPhone === "string") {
-      const [existing] = await clientRepository.findActiveByPhone(normalizedPhone);
+      const [existing] = await clientRepository.findActiveByPhone(normalizedPhone, salonId);
       if (existing) throw badRequest("Client with this phone number already exists");
     }
 
@@ -41,34 +43,36 @@ export const clientService = {
       name: requireText(name, "Name", { max: 120 }),
       phone: normalizedPhone,
       notes: optionalText(notes, { max: 1000 }),
+      salonId,
     });
 
     return formatClient(client);
   },
 
-  async getClients() {
-    const rows = await clientRepository.findActive();
+  async getClients(user?: any) {
+    const rows = await clientRepository.findActive(requireSalonId(user));
     const clientsWithSummaries = await addVisitSummaries(rows);
     return clientsWithSummaries.map(formatClient);
   },
 
-  async getClientById(id: string) {
+  async getClientById(id: string, user?: any) {
     const clientId = requireUuid(id);
-    const [client] = await clientRepository.findById(clientId);
+    const [client] = await clientRepository.findById(clientId, requireSalonId(user));
     if (!client) throw notFound("Client not found");
 
     const [clientWithSummary] = await addVisitSummaries([client]);
     return formatClient(clientWithSummary);
   },
 
-  async searchClients(query: unknown) {
+  async searchClients(query: unknown, user?: any) {
     if (!query) return [];
 
-    const rows = await clientRepository.searchActive(String(query).trim());
+    const rows = await clientRepository.searchActive(String(query).trim(), requireSalonId(user));
     return rows.map(formatClient);
   },
 
-  async updateClient(id: string, body: any) {
+  async updateClient(id: string, body: any, user?: any) {
+    const salonId = requireSalonId(user);
     const clientId = requireUuid(id);
     const updates: Record<string, unknown> = {};
 
@@ -82,18 +86,18 @@ export const clientService = {
     });
 
     if (typeof updates.phone === "string") {
-      const [existing] = await clientRepository.findActiveByPhoneExceptId(updates.phone, clientId);
+      const [existing] = await clientRepository.findActiveByPhoneExceptId(updates.phone, clientId, salonId);
       if (existing) throw badRequest("Client with this phone number already exists");
     }
 
-    const [client] = await clientRepository.updateById(clientId, updates);
+    const [client] = await clientRepository.updateById(clientId, updates, salonId);
     if (!client) throw notFound("Client not found");
 
     return formatClient(client);
   },
 
-  async deactivateClient(id: string) {
-    const [client] = await clientRepository.deactivateById(requireUuid(id));
+  async deactivateClient(id: string, user?: any) {
+    const [client] = await clientRepository.deactivateById(requireUuid(id), requireSalonId(user));
     if (!client) throw notFound("Client not found");
 
     return { message: "Client deactivated successfully" };

@@ -1,33 +1,33 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "../db";
 import { services } from "../db/schema";
 
 export const serviceRepository = {
-  create(values: { name: string; category: string; price: number }) {
+  create(values: { name: string; category: string; price: number; salonId: string }) {
     return db.insert(services).values(values).returning();
   },
 
-  findAll() {
-    return db.select().from(services).orderBy(asc(services.name));
+  findAll(salonId: string) {
+    return db.select().from(services).where(eq(services.salonId, salonId)).orderBy(asc(services.name));
   },
 
-  findById(id: string) {
-    return db.select().from(services).where(eq(services.id, id)).limit(1);
+  findById(id: string, salonId: string) {
+    return db.select().from(services).where(and(eq(services.id, id), eq(services.salonId, salonId))).limit(1);
   },
 
-  findByName(name: string) {
-    return db.select().from(services).where(eq(services.name, name)).limit(1);
+  findByName(name: string, salonId: string) {
+    return db.select().from(services).where(and(eq(services.name, name), eq(services.salonId, salonId))).limit(1);
   },
 
-  updateById(id: string, updates: Record<string, unknown>) {
+  updateById(id: string, updates: Record<string, unknown>, salonId: string) {
     return db
       .update(services)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(services.id, id))
+      .where(and(eq(services.id, id), eq(services.salonId, salonId)))
       .returning();
   },
 
-  deleteById(id: string) {
-    return db.delete(services).where(eq(services.id, id)).returning();
+  deleteById(id: string, salonId: string) {
+    return db.delete(services).where(and(eq(services.id, id), eq(services.salonId, salonId))).returning();
   },
 };

@@ -61,7 +61,7 @@ export function ConfirmDialogProvider({ children }) {
               role="dialog"
               aria-modal="true"
               aria-labelledby="confirm-dialog-title"
-              className="w-full max-w-sm rounded-[2rem] bg-white p-6 text-center shadow-2xl"
+              className="w-full max-w-sm rounded-2xl bg-white p-5 text-center shadow-xl"
               initial={{ opacity: 0, y: 20, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -69,25 +69,25 @@ export function ConfirmDialogProvider({ children }) {
               onMouseDown={(event) => event.stopPropagation()}
             >
               <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${styles.icon}`}>
-                <span className="text-xl font-black">!</span>
+                <span className="text-xl font-semibold">!</span>
               </div>
-              <h2 id="confirm-dialog-title" className="mt-4 text-xl font-black text-gray-900">
+              <h2 id="confirm-dialog-title" className="mt-4 text-lg font-semibold text-gray-950">
                 {dialog.title}
               </h2>
-              <p className="mt-2 text-sm font-semibold leading-relaxed text-gray-500">
+              <p className="mt-2 text-sm font-medium leading-relaxed text-gray-500">
                 {dialog.message}
               </p>
               <div className="mt-6 flex gap-3">
                 <button
                   type="button"
-                  className="w-1/2 rounded-2xl bg-gray-100 py-3 text-sm font-black text-gray-600 transition-transform active:scale-95"
+                  className="w-1/2 rounded-xl bg-gray-100 py-3 text-sm font-semibold text-gray-600 transition-transform active:scale-95"
                   onClick={() => close(false)}
                 >
                   {dialog.cancelLabel}
                 </button>
                 <button
                   type="button"
-                  className={`w-1/2 rounded-2xl py-3 text-sm font-black shadow-lg transition-transform active:scale-95 ${styles.confirm}`}
+                  className={`w-1/2 rounded-xl py-3 text-sm font-semibold shadow-lg transition-transform active:scale-95 ${styles.confirm}`}
                   onClick={() => close(true)}
                 >
                   {dialog.confirmLabel}

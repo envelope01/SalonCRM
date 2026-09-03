@@ -23,50 +23,44 @@ function resolveApiBaseUrl() {
   }
 
   if (!configured || configured.toLowerCase() === "auto") {
-    throw new Error(
-      "REACT_APP_API_BASE_URL is required outside development auto mode",
-    );
+    throw new Error("REACT_APP_API_BASE_URL is required outside development auto mode");
   }
 
   return configured;
 }
 
 const defaultBillConfig = {
-  paymentUrl: "upi://pay?pa=9082355838@kotak&pn=SalonName&am={{BillAmount}}&cu=INR",
+  upiId: "",
+  paymentUrl: "upi://pay?pa=&pn=SalonName&am={{BillAmount}}&cu=INR",
   instagramUrl: "https://instagram.com/your_salon",
   googleReviewUrl: "https://g.page/r/your-review-link",
   billMessageTemplate: [
-    "Hi *{{CustomerName}}*! 😊",
+    "Hi {{CustomerName}},",
     "",
-    "Thank you for visiting our salon! ❤️",
+    "Thank you for visiting our salon.",
     "",
-    "🧾 *Services Taken:*",
+    "Services:",
     "{{ServicesList}}",
     "",
-    "💰 *Subtotal:* ₹{{SubtotalAmount}}",
+    "Subtotal: ₹{{SubtotalAmount}}",
     "{{DiscountSection}}",
-    "🧾 *Your Bill Amount:* ₹{{BillAmount}}",
+    "Total: ₹{{BillAmount}}",
     "",
-    "We're grateful for your visit and look forward to serving you again.",
+    "Pay here: {{PaymentURL}}",
     "",
-    "💳 *Click here to pay:*",
-    "{{PaymentURL}}",
+    "Follow us: {{InstagramURL}}",
+    "Review us: {{GoogleReviewURL}}",
     "",
-    "📸 *Follow us on Instagram:*",
-    "{{InstagramURL}}",
-    "",
-    "⭐ *Loved your experience? Please leave us a Google Review:*",
-    "{{GoogleReviewURL}}",
-    "",
-    "Your feedback means a lot to us and helps us serve you even better. Thank you for your support! 🙏",
+    "See you again soon.",
   ].join("\n"),
   billServiceLineTemplate: "{{Index}}. {{ServiceName}} - ₹{{ServiceAmount}}",
-  billDiscountLineTemplate: "🎉 *You Saved:* ₹{{DiscountAmount}} ({{DiscountPercent}}% discount)",
+  billDiscountLineTemplate: "Discount: {{DiscountPercent}}% (-₹{{DiscountAmount}})",
 };
 
 export const appConfig = {
   env: process.env.NODE_ENV || "development",
   apiBaseUrl: resolveApiBaseUrl(),
+  upiId: (process.env.REACT_APP_UPI_ID || defaultBillConfig.upiId).trim(),
   paymentUrl: (process.env.REACT_APP_PAYMENT_URL || defaultBillConfig.paymentUrl).trim(),
   googleReviewUrl: (process.env.REACT_APP_GOOGLE_REVIEW_URL || defaultBillConfig.googleReviewUrl).trim(),
   instagramUrl: (process.env.REACT_APP_INSTAGRAM_URL || defaultBillConfig.instagramUrl).trim(),

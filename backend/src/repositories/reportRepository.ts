@@ -1,11 +1,19 @@
-import { and, desc, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "../db";
 import { expenses, visits } from "../db/schema";
 
 export const reportRepository = {
-  async getSummaryRows(startDate: Date, endDate: Date) {
-    const visitDateFilter = and(gte(visits.visitDate, startDate), lte(visits.visitDate, endDate));
-    const expenseDateFilter = and(gte(expenses.date, startDate), lte(expenses.date, endDate));
+  async getSummaryRows(salonId: string, startDate: Date, endDate: Date) {
+    const visitDateFilter = and(
+      eq(visits.salonId, salonId),
+      gte(visits.visitDate, startDate),
+      lte(visits.visitDate, endDate),
+    );
+    const expenseDateFilter = and(
+      eq(expenses.salonId, salonId),
+      gte(expenses.date, startDate),
+      lte(expenses.date, endDate),
+    );
 
     const [earningsTotals] = await db
       .select({

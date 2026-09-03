@@ -28,6 +28,42 @@ const statusFilters = [
   ...statusOptions,
 ];
 
+function Icon({ children, className = "w-4 h-4" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
+}
+
+const icons = {
+  calendar: (
+    <Icon className="w-7 h-7">
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M3 10h18" />
+    </Icon>
+  ),
+  phone: (
+    <Icon>
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.78.6 2.63a2 2 0 0 1-.45 2.11L8 9.72a16 16 0 0 0 6.28 6.28l1.26-1.26a2 2 0 0 1 2.11-.45c.85.28 1.73.48 2.63.6A2 2 0 0 1 22 16.92z" />
+    </Icon>
+  ),
+  whatsapp: (
+    <Icon>
+      <path d="M20 11.5a8 8 0 0 1-11.8 7.02L4 20l1.48-4.2A8 8 0 1 1 20 11.5z" />
+      <path d="M9.5 8.5c.2 2 1.8 4.1 4 5.1l1.2-1.1 2 .8c-.3 1.2-1.2 2-2.5 2-2.8 0-6.5-3.6-6.5-6.4 0-1.3.8-2.2 2-2.5l.8 2.1-.5 0z" />
+    </Icon>
+  ),
+  edit: (
+    <Icon>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+    </Icon>
+  ),
+};
+
 function pad(value) {
   return String(value).padStart(2, "0");
 }
@@ -130,8 +166,7 @@ function AppointmentsPage() {
 
       const res = await appointmentService.getAppointments(params);
       setAppointments(res.data || []);
-    } catch (err) {
-      console.error("Failed to load appointments", err);
+    } catch {
       setAppointments([]);
     } finally {
       setLoading(false);
@@ -169,8 +204,7 @@ function AppointmentsPage() {
       try {
         const res = await clientService.getClients();
         setClients(res.data || []);
-      } catch (err) {
-        console.error("Failed to load clients", err);
+      } catch {
         setClients([]);
       }
     };
@@ -308,14 +342,14 @@ function AppointmentsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 pb-28">
       <MainHeader title="Appointments">
-        <div className="flex bg-gray-100 p-1 rounded-2xl mt-4">
+        <div className="mt-3 flex rounded-xl bg-gray-100 p-1">
           {["today", "week", "month", "year", "custom"].map((p) => (
             <button
               key={p}
               type="button"
               onClick={() => (p === "custom" ? setPeriod("custom") : applyPreset(p))}
-              className={`flex-1 py-2.5 text-[11px] font-bold rounded-xl capitalize transition-all ${
-                period === p ? "bg-white shadow text-brandPink" : "text-gray-500"
+              className={`flex-1 rounded-lg py-2 text-[11px] font-semibold capitalize transition-all ${
+                period === p ? "bg-white text-gray-950 shadow-sm" : "text-gray-500"
               }`}
             >
               {p}
@@ -329,18 +363,18 @@ function AppointmentsPage() {
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="min-w-0 bg-gray-100 rounded-2xl px-3 py-3 text-xs font-bold text-gray-700 outline-none"
+              className="min-w-0 rounded-xl bg-gray-100 px-3 py-3 text-xs font-semibold text-gray-700 outline-none"
             />
             <input
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="min-w-0 bg-gray-100 rounded-2xl px-3 py-3 text-xs font-bold text-gray-700 outline-none"
+              className="min-w-0 rounded-xl bg-gray-100 px-3 py-3 text-xs font-semibold text-gray-700 outline-none"
             />
             <button
               type="button"
               onClick={applyCustomRange}
-              className="bg-primary text-white px-4 py-3 rounded-2xl text-xs font-bold active:scale-95 transition-transform"
+              className="rounded-xl bg-primary px-4 py-3 text-xs font-semibold text-white shadow-lg shadow-brandPink/20 transition-transform active:scale-95"
             >
               Go
             </button>
@@ -367,9 +401,9 @@ function AppointmentsPage() {
               key={status.value}
               type="button"
               onClick={() => handleStatusFilter(status.value)}
-              className={`flex-shrink-0 px-3 py-2 rounded-2xl text-xs font-bold transition-all ${
+              className={`flex-shrink-0 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
                 statusFilter === status.value
-                  ? "bg-brandPink text-white shadow-sm"
+                  ? "bg-primary text-white shadow-sm shadow-brandPink/20"
                   : "bg-gray-100 text-gray-500"
               }`}
             >
@@ -383,9 +417,11 @@ function AppointmentsPage() {
         {loading ? (
           <div className="text-center text-brandPink font-bold mt-10 animate-pulse">Loading appointments...</div>
         ) : appointments.length === 0 ? (
-          <div className="text-center mt-12 text-gray-400 font-medium">
-            <div className="text-4xl mb-3">📅</div>
-            No appointments found.
+          <div className="empty-state">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-50 text-gray-400">
+              {icons.calendar}
+            </div>
+            <p>No appointments found.</p>
           </div>
         ) : (
           <motion.div layout className="space-y-3">
@@ -409,16 +445,16 @@ function AppointmentsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     key={appointment._id}
-                    className={`bg-white p-4 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden ${
+                    className={`relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-3.5 shadow-sm ${
                       isCancelled ? "opacity-75" : ""
                     }`}
                   >
-                    <div className="flex gap-4 pr-24 sm:pr-28">
-                      <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex flex-col items-center justify-center flex-shrink-0">
-                        <span className="text-[10px] font-black text-brandPink uppercase">
+                    <div className="flex gap-3 pr-24 sm:pr-28">
+                      <div className="flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-xl border border-gray-100 bg-gray-50">
+                        <span className="text-[10px] font-semibold uppercase text-brandPink">
                           {start.toLocaleDateString(undefined, { month: "short" })}
                         </span>
-                        <span className="text-xl font-black text-gray-900">{start.getDate()}</span>
+                        <span className="text-lg font-semibold text-gray-900">{start.getDate()}</span>
                       </div>
 
                       <div className="min-w-0 flex-1">
@@ -426,7 +462,7 @@ function AppointmentsPage() {
                           <h3 className={`font-bold text-gray-900 text-base truncate ${isCancelled ? "line-through text-gray-400" : ""}`}>
                             {appointment.title}
                           </h3>
-                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${statusTone}`}>
+                          <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase ${statusTone}`}>
                             {appointment.status}
                           </span>
                         </div>
@@ -449,19 +485,19 @@ function AppointmentsPage() {
                         <>
                           <a
                             href={`tel:${phone}`}
-                            className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs font-black shadow-sm active:scale-90 transition-transform"
+                            className="w-8 h-8 rounded-full bg-brandPink/10 text-brandPink flex items-center justify-center shadow-sm active:scale-90 transition-transform"
                             aria-label={`Call ${appointment.client?.name || "client"}`}
                           >
-                            📞
+                            {icons.phone}
                           </a>
                           <a
                             href={whatsappUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-xs font-black shadow-sm active:scale-90 transition-transform"
-                            aria-label={`Message ${appointment.client?.name || "client"}`}
+                            className="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center shadow-sm active:scale-90 transition-transform"
+                            aria-label={`WhatsApp ${appointment.client?.name || "client"}`}
                           >
-                            💬
+                            {icons.whatsapp}
                           </a>
                         </>
                       ) : (
@@ -469,18 +505,18 @@ function AppointmentsPage() {
                           <button
                             type="button"
                             disabled
-                            className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs font-black shadow-sm opacity-35"
+                            className="w-8 h-8 rounded-full bg-brandPink/10 text-brandPink flex items-center justify-center shadow-sm opacity-35"
                             aria-label="Phone number unavailable"
                           >
-                            📞
+                            {icons.phone}
                           </button>
                           <button
                             type="button"
                             disabled
-                            className="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-xs font-black shadow-sm opacity-35"
+                            className="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center shadow-sm opacity-35"
                             aria-label="WhatsApp unavailable"
                           >
-                            💬
+                            {icons.whatsapp}
                           </button>
                         </>
                       )}
@@ -488,10 +524,10 @@ function AppointmentsPage() {
                         type="button"
                         disabled={appointment.status !== "scheduled"}
                         onClick={() => openEditSheet(appointment)}
-                        className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-black shadow-sm active:scale-90 transition-transform disabled:opacity-35"
+                        className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center shadow-sm active:scale-90 transition-transform disabled:opacity-35"
                         aria-label={`Edit ${appointment.title}`}
                       >
-                        ✎
+                        {icons.edit}
                       </button>
                       <button
                         type="button"
@@ -514,7 +550,8 @@ function AppointmentsPage() {
       <button
         type="button"
         onClick={openCreateSheet}
-        className="fixed bottom-28 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30 active:scale-90 transition-transform"
+        className="fab-button"
+        aria-label="Add appointment"
       >
         +
       </button>
@@ -533,11 +570,11 @@ function AppointmentsPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="bg-white w-full rounded-t-[2.5rem] p-8 pb-12 max-h-[88vh] overflow-y-auto"
+              className="bottom-sheet max-h-[88vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
-              <h2 className="text-xl font-black mb-6 text-gray-900">
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+              <h2 className="mb-5 text-lg font-semibold text-gray-950">
                 {editingAppointment
                   ? "Edit Appointment"
                   : isPastAppointmentDate(form.date)
@@ -547,7 +584,7 @@ function AppointmentsPage() {
 
               <div className="space-y-4">
                 <input
-                  className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/20"
+                  className="input-soft"
                   placeholder="Appointment title"
                   value={form.title}
                   maxLength="120"
@@ -556,7 +593,7 @@ function AppointmentsPage() {
 
                 <div className="relative">
                   <input
-                    className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/20"
+                    className="input-soft"
                     placeholder="Search client"
                     value={form.clientSearch}
                     onChange={(e) => setForm((current) => ({
@@ -567,7 +604,7 @@ function AppointmentsPage() {
                     }))}
                   />
                   {form.clientSearch && !form.clientId && (
-                    <div className="mt-2 bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+                    <div className="mt-2 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg">
                       {filteredClients.length === 0 ? (
                         <div className="p-4 text-sm text-gray-400 font-semibold">No clients found</div>
                       ) : (
@@ -611,7 +648,7 @@ function AppointmentsPage() {
 
                 <select
                   value={form.durationMinutes}
-                  className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-700 outline-none appearance-none"
+                  className="input-soft appearance-none"
                   onChange={(e) => setForm((current) => ({ ...current, durationMinutes: e.target.value }))}
                 >
                   {durationOptions.map((option) => (
@@ -624,14 +661,14 @@ function AppointmentsPage() {
                   placeholder="Notes (optional)"
                   value={form.notes}
                   maxLength="1000"
-                  className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm outline-none"
+                  className="input-soft"
                   onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))}
                 />
 
                 <button
                   type="button"
                   disabled={saving}
-                  className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-70"
+                  className="btn-primary w-full"
                   onClick={saveAppointment}
                 >
                   {saving ? "Saving..." : editingAppointment ? "Save Changes" : "Save Appointment"}

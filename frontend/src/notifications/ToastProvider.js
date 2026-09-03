@@ -47,13 +47,13 @@ function ToastItem({ toast, onRemove }) {
     >
       <span className={`mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full ${style.icon}`} />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-black">{toast.title || style.title}</p>
-        <p className="mt-0.5 text-sm font-semibold leading-snug opacity-90">{toast.message}</p>
+        <p className="text-sm font-semibold">{toast.title || style.title}</p>
+        <p className="mt-0.5 text-sm font-medium leading-snug opacity-90">{toast.message}</p>
       </div>
       <button
         type="button"
         aria-label="Dismiss notification"
-        className="rounded-lg px-2 text-lg font-black leading-none opacity-60 transition-opacity hover:opacity-100"
+        className="rounded-lg px-2 text-lg font-semibold leading-none opacity-60 transition-opacity hover:opacity-100"
         onClick={() => onRemove(toast.id)}
       >
         x

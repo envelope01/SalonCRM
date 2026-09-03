@@ -11,5 +11,6 @@ router.post("/login", authController.login);
 
 // Protected: get current user
 router.get("/me", authMiddleware, authController.me);
+router.put("/password", authMiddleware, authController.changePassword);
 
 module.exports = router;

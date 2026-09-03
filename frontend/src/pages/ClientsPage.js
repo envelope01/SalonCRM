@@ -12,16 +12,50 @@ import {
 } from "../utils/validation";
 import { toast } from "../notifications/toastBus";
 
+function Icon({ children, className = "w-4 h-4" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
+}
+
+const icons = {
+  search: (
+    <Icon>
+      <circle cx="11" cy="11" r="8" />
+      <path d="M21 21l-4.35-4.35" />
+    </Icon>
+  ),
+  clients: (
+    <Icon className="w-7 h-7">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </Icon>
+  ),
+  phone: (
+    <Icon>
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.78.6 2.63a2 2 0 0 1-.45 2.11L8 9.72a16 16 0 0 0 6.28 6.28l1.26-1.26a2 2 0 0 1 2.11-.45c.85.28 1.73.48 2.63.6A2 2 0 0 1 22 16.92z" />
+    </Icon>
+  ),
+  whatsapp: (
+    <Icon>
+      <path d="M20 11.5a8 8 0 0 1-11.8 7.02L4 20l1.48-4.2A8 8 0 1 1 20 11.5z" />
+      <path d="M9.5 8.5c.2 2 1.8 4.1 4 5.1l1.2-1.1 2 .8c-.3 1.2-1.2 2-2.5 2-2.8 0-6.5-3.6-6.5-6.4 0-1.3.8-2.2 2-2.5l.8 2.1-.5 0z" />
+    </Icon>
+  ),
+};
+
 function ClientsPage() {
   const confirm = useConfirm();
 
-  /* ---------------- STATE ---------------- */
   const [clients, setClients] = useState([]);
   const [allClients, setAllClients] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* ---------------- MODAL STATE ---------------- */
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -30,17 +64,13 @@ function ClientsPage() {
   const [deletingClientId, setDeletingClientId] = useState("");
   const lastDuplicatePhoneRef = useRef("");
 
-  /* ======================================================
-     FETCH CLIENTS
-     ====================================================== */
   const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
       const res = await clientService.getClients();
       setClients(res.data || []);
       setAllClients(res.data || []);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setClients([]);
       setAllClients([]);
     } finally {
@@ -52,9 +82,6 @@ function ClientsPage() {
     fetchClients();
   }, [fetchClients]);
 
-  /* ======================================================
-     LOCAL SEARCH
-     ====================================================== */
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearch(value);
@@ -72,9 +99,6 @@ function ClientsPage() {
     setClients(filtered);
   };
 
-  /* ======================================================
-     ADD CLIENT
-     ====================================================== */
   const addClient = async (e) => {
     e.preventDefault();
 
@@ -158,9 +182,6 @@ function ClientsPage() {
     }
   };
 
-  /* ======================================================
-     HELPERS
-     ====================================================== */
   const initials = (n) => {
     if (!n) return "C";
     const parts = n.trim().split(" ");
@@ -170,38 +191,31 @@ function ClientsPage() {
     return n.slice(0, 2).toUpperCase();
   };
 
-  /* ======================================================
-     RENDER
-     ====================================================== */
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 pb-28">
-      
-      {/* STICKY HEADER */}
       <MainHeader title="Clients">
         <div className="flex gap-2 items-center">
-          {/* Search Bar */}
           <div className="relative flex-1">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">{icons.search}</span>
             <input
-              className="w-full bg-gray-100 border-none rounded-2xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brandPink/50 transition-shadow"
+              className="input-soft pl-11"
               placeholder="Search by name or phone..."
               value={search}
               onChange={handleSearch}
             />
           </div>
-
-
         </div>
       </MainHeader>
 
-      {/* CLIENT LIST */}
       <main className="p-4 flex-1">
         {loading ? (
           <div className="text-center text-brandPink font-bold mt-10 animate-pulse">Loading clients...</div>
         ) : clients.length === 0 ? (
-          <div className="text-center mt-12 text-gray-400 font-medium">
-            <div className="text-4xl mb-3">👥</div>
-            No clients found.
+          <div className="empty-state">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-50 text-gray-400">
+              {icons.clients}
+            </div>
+            <p>No clients found.</p>
           </div>
         ) : (
           <motion.div layout className="space-y-3">
@@ -217,16 +231,13 @@ function ClientsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   key={c._id}
-                  className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group"
+                  className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-3.5 shadow-sm"
                 >
-                  <Link to={`/clients/${c._id}`} className="flex items-center gap-4 pr-28 sm:pr-32">
-                    
-                    {/* Avatar */}
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-brandPink text-white flex items-center justify-center font-black text-sm flex-shrink-0 shadow-inner">
+                  <Link to={`/clients/${c._id}`} className="flex items-center gap-3 pr-28 sm:pr-32">
+                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-white shadow-sm shadow-brandPink/20">
                       {initials(c.name)}
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-gray-900 text-base truncate">
                         {c.name}
@@ -253,7 +264,6 @@ function ClientsPage() {
                     </div>
                   </Link>
 
-                  {/* Quick Actions (Call / WhatsApp / Delete) */}
                   <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 sm:gap-2">
                     {hasPhone && (
                       <>
@@ -262,16 +272,18 @@ function ClientsPage() {
                       target="_blank" 
                       rel="noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-sm shadow-sm active:scale-90 transition-transform"
+                      className="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center shadow-sm active:scale-90 transition-transform"
+                      aria-label={`WhatsApp ${c.name}`}
                     >
-                      💬
+                      {icons.whatsapp}
                     </a>
                     <a 
                       href={`tel:${clientPhone}`} 
                       onClick={(e) => e.stopPropagation()}
-                      className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-sm shadow-sm active:scale-90 transition-transform"
+                      className="w-8 h-8 rounded-full bg-brandPink/10 text-brandPink flex items-center justify-center shadow-sm active:scale-90 transition-transform"
+                      aria-label={`Call ${c.name}`}
                     >
-                      📞
+                      {icons.phone}
                     </a>
                       </>
                     )}
@@ -297,17 +309,16 @@ function ClientsPage() {
         )}
       </main>
 
-      {/* FAB - Add Client (Pushed to bottom-28 so it sits above the BottomNav!) */}
       <button
         onClick={() => {
           setShowModal(true);
         }}
-        className="fixed bottom-28 right-6 w-14 h-14 bg-brandPink text-white rounded-2xl shadow-lg shadow-brandPink/30 flex items-center justify-center text-3xl z-30 active:scale-90 transition-transform"
+        className="fab-button"
+        aria-label="Add client"
       >
         +
       </button>
 
-      {/* ADD CLIENT BOTTOM SHEET */}
       <AnimatePresence>
         {showModal && (
           <motion.div 
@@ -318,15 +329,15 @@ function ClientsPage() {
             <motion.div 
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="bg-white w-full rounded-t-[2.5rem] p-8 pb-12"
+              className="bottom-sheet"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
-              <h2 className="text-xl font-black mb-6 text-gray-900">New Client</h2>
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+              <h2 className="mb-5 text-lg font-semibold text-gray-950">New Client</h2>
 
               <form onSubmit={addClient} className="space-y-4">
                 <input
-                  className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/20"
+                  className="input-soft"
                   placeholder="Full Name"
                   value={name}
                   autoFocus
@@ -335,7 +346,7 @@ function ClientsPage() {
                 />
 
                 <input
-                  className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/20"
+                  className="input-soft"
                   placeholder="Phone Number (optional)"
                   value={phone}
                   inputMode="numeric"
@@ -344,7 +355,7 @@ function ClientsPage() {
                 />
 
                 <input
-                  className="w-full bg-gray-50 p-4 rounded-2xl border-none text-sm font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-brandPink/20"
+                  className="input-soft"
                   placeholder="Notes (optional)"
                   value={notes}
                   maxLength="1000"
@@ -354,7 +365,7 @@ function ClientsPage() {
                 <div className="flex gap-3 pt-4">
                   <button 
                     type="button" 
-                    className="w-1/3 bg-gray-100 text-gray-600 py-4 rounded-2xl font-bold active:scale-95 transition-transform"
+                    className="btn-secondary w-1/3"
                     onClick={() => setShowModal(false)}
                   >
                     Cancel
@@ -362,7 +373,7 @@ function ClientsPage() {
                   <button 
                     type="submit" 
                     disabled={saving}
-                    className="w-2/3 bg-primary text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-70"
+                    className="btn-primary w-2/3"
                   >
                     {saving ? "Saving..." : "Save Client"}
                   </button>

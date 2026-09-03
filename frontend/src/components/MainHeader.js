@@ -1,5 +1,14 @@
-// src/components/MainHeader.js
 import { clearAuth } from "../api";
+
+function LogoutIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <path d="M16 17l5-5-5-5" />
+      <path d="M21 12H9" />
+    </svg>
+  );
+}
 
 const MainHeader = ({ title, children }) => {
   const handleLogout = () => {
@@ -8,19 +17,18 @@ const MainHeader = ({ title, children }) => {
   };
 
   return (
-    <header className="sticky top-0 bg-white px-5 pt-8 pb-4 shadow-sm z-20">
-      {/* Title and Logout Button */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+    <header className="sticky top-0 z-20 border-b border-gray-100 bg-white/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h1 className="truncate text-xl font-semibold tracking-tight text-gray-950">{title}</h1>
         <button
+          type="button"
           onClick={handleLogout}
-          className="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm active:scale-95 transition-transform"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition-transform active:scale-95"
+          aria-label="Logout"
         >
-          Logout
+          <LogoutIcon />
         </button>
       </div>
-
-      {/* Page-specific content (Search bars, filters, etc.) */}
       {children}
     </header>
   );

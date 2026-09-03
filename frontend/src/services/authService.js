@@ -8,4 +8,8 @@ export const authService = {
   me() {
     return httpClient.get("/auth/me");
   },
+
+  changePassword(payload) {
+    return httpClient.put("/auth/password", payload);
+  },
 };

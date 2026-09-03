@@ -60,6 +60,9 @@ app.use("/api/reports", reportRoutes);
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authLimiter, authRoutes);
 
+const adminRoutes = require("./routes/adminRoutes");
+app.use("/api/admin", adminRoutes);
+
 const clientRoutes = require("./routes/clientRoutes");
 app.use("/api/clients", clientRoutes);
 
@@ -68,6 +71,9 @@ app.use("/api/appointments", appointmentRoutes);
 
 const serviceRoutes = require("./routes/serviceRoutes");
 app.use("/api/services", serviceRoutes);
+
+const staffRoutes = require("./routes/staffRoutes");
+app.use("/api/staff", staffRoutes);
 
 const visitRoutes = require("./routes/visitRoutes");
 app.use("/api/visits", visitRoutes);

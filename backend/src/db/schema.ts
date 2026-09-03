@@ -7,6 +7,7 @@ import {
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
@@ -22,6 +23,20 @@ const timestamps = {
   version: integer("__v").notNull().default(0),
 };
 
+export const salons = pgTable(
+  "tenants",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    plan: text("plan").notNull().default("trial"),
+    isActive: boolean("is_active").notNull().default(true),
+    ...timestamps,
+  },
+  (table) => ({
+    nameIdx: index("salons_name_idx").on(table.name),
+  }),
+);
+
 export const users = pgTable(
   "users",
   {
@@ -29,7 +44,9 @@ export const users = pgTable(
     email: text("email").notNull(),
     name: text("name").notNull().default("Salon Owner"),
     passwordHash: text("password_hash").notNull(),
+    mustChangePassword: boolean("must_change_password").notNull().default(false),
     role: userRole("role").notNull().default("staff"),
+    salonId: uuid("tenant_id").references(() => salons.id, { onDelete: "set null" }),
     ...timestamps,
   },
   (table) => ({
@@ -45,9 +62,13 @@ export const clients = pgTable(
     phone: text("phone"),
     notes: text("notes").notNull().default(""),
     isActive: boolean("is_active").notNull().default(true),
+    salonId: uuid("tenant_id")
+      .notNull()
+      .references(() => salons.id, { onDelete: "cascade" }),
     ...timestamps,
   },
   (table) => ({
+    salonIdx: index("clients_salon_idx").on(table.salonId),
     phoneIdx: index("clients_phone_idx").on(table.phone),
   }),
 );
@@ -60,9 +81,13 @@ export const services = pgTable(
     category: text("category").notNull().default(""),
     price: doublePrecision("price").notNull(),
     isActive: boolean("is_active").notNull().default(true),
+    salonId: uuid("tenant_id")
+      .notNull()
+      .references(() => salons.id, { onDelete: "cascade" }),
     ...timestamps,
   },
   (table) => ({
+    salonIdx: index("services_salon_idx").on(table.salonId),
     priceNonNegative: check("services_price_non_negative", sql`${table.price} >= 0`),
   }),
 );
@@ -75,19 +100,33 @@ export const expenses = pgTable(
     category: text("category").notNull(),
     amount: doublePrecision("amount").notNull(),
     notes: text("notes").notNull().default(""),
+    salonId: uuid("tenant_id")
+      .notNull()
+      .references(() => salons.id, { onDelete: "cascade" }),
     ...timestamps,
   },
   (table) => ({
+    salonIdx: index("expenses_salon_idx").on(table.salonId),
     dateIdx: index("expenses_date_idx").on(table.date),
     amountNonNegative: check("expenses_amount_non_negative", sql`${table.amount} >= 0`),
   }),
 );
 
-export const appSettings = pgTable("app_settings", {
-  key: text("key").primaryKey(),
-  value: text("value").notNull().default(""),
-  ...timestamps,
-});
+export const appSettings = pgTable(
+  "app_settings",
+  {
+    key: text("key").notNull(),
+    salonId: uuid("tenant_id")
+      .notNull()
+      .references(() => salons.id, { onDelete: "cascade" }),
+    value: text("value").notNull().default(""),
+    ...timestamps,
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.salonId, table.key] }),
+    salonIdx: index("app_settings_salon_idx").on(table.salonId),
+  }),
+);
 
 export const appointments = pgTable(
   "appointments",
@@ -101,9 +140,13 @@ export const appointments = pgTable(
     appointmentEnd: timestamp("appointment_end", { withTimezone: true }).notNull(),
     status: text("status").notNull().default("scheduled"),
     notes: text("notes").notNull().default(""),
+    salonId: uuid("tenant_id")
+      .notNull()
+      .references(() => salons.id, { onDelete: "cascade" }),
     ...timestamps,
   },
   (table) => ({
+    salonIdx: index("appointments_salon_idx").on(table.salonId),
     clientIdx: index("appointments_client_idx").on(table.clientId),
     startIdx: index("appointments_start_idx").on(table.appointmentStart),
     endIdx: index("appointments_end_idx").on(table.appointmentEnd),
@@ -124,9 +167,13 @@ export const visits = pgTable(
     totalAmount: doublePrecision("total_amount").notNull(),
     notes: text("notes").notNull().default(""),
     isDeleted: boolean("is_deleted").notNull().default(false),
+    salonId: uuid("tenant_id")
+      .notNull()
+      .references(() => salons.id, { onDelete: "cascade" }),
     ...timestamps,
   },
   (table) => ({
+    salonIdx: index("visits_salon_idx").on(table.salonId),
     clientIdx: index("visits_client_idx").on(table.clientId),
     visitDateIdx: index("visits_visit_date_idx").on(table.visitDate),
     totalAmountNonNegative: check("visits_total_amount_non_negative", sql`${table.totalAmount} >= 0`),
@@ -140,6 +187,9 @@ export const visitServices = pgTable(
     visitId: uuid("visit_id")
       .notNull()
       .references(() => visits.id, { onDelete: "cascade" }),
+    salonId: uuid("tenant_id")
+      .notNull()
+      .references(() => salons.id, { onDelete: "cascade" }),
     serviceId: uuid("service_id").references(() => services.id, { onDelete: "set null" }),
     position: integer("position").notNull().default(0),
     name: text("name").notNull(),
@@ -148,6 +198,7 @@ export const visitServices = pgTable(
     lineTotal: doublePrecision("line_total").notNull(),
   },
   (table) => ({
+    salonIdx: index("visit_services_tenant_idx").on(table.salonId),
     visitIdx: index("visit_services_visit_idx").on(table.visitId),
     serviceIdx: index("visit_services_service_idx").on(table.serviceId),
     visitPositionUnique: uniqueIndex("visit_services_visit_position_unique").on(table.visitId, table.position),
@@ -157,21 +208,58 @@ export const visitServices = pgTable(
   }),
 );
 
-export const usersRelations = relations(users, () => ({}));
+export const salonsRelations = relations(salons, ({ many }) => ({
+  users: many(users),
+  clients: many(clients),
+  services: many(services),
+  expenses: many(expenses),
+  appointments: many(appointments),
+  visits: many(visits),
+  settings: many(appSettings),
+}));
 
-export const clientsRelations = relations(clients, ({ many }) => ({
+export const usersRelations = relations(users, ({ one }) => ({
+  salon: one(salons, {
+    fields: [users.salonId],
+    references: [salons.id],
+  }),
+}));
+
+export const clientsRelations = relations(clients, ({ one, many }) => ({
+  salon: one(salons, {
+    fields: [clients.salonId],
+    references: [salons.id],
+  }),
   visits: many(visits),
   appointments: many(appointments),
 }));
 
-export const servicesRelations = relations(services, ({ many }) => ({
+export const servicesRelations = relations(services, ({ one, many }) => ({
+  salon: one(salons, {
+    fields: [services.salonId],
+    references: [salons.id],
+  }),
   visitServices: many(visitServices),
 }));
 
-export const expensesRelations = relations(expenses, () => ({}));
-export const appSettingsRelations = relations(appSettings, () => ({}));
+export const expensesRelations = relations(expenses, ({ one }) => ({
+  salon: one(salons, {
+    fields: [expenses.salonId],
+    references: [salons.id],
+  }),
+}));
+export const appSettingsRelations = relations(appSettings, ({ one }) => ({
+  salon: one(salons, {
+    fields: [appSettings.salonId],
+    references: [salons.id],
+  }),
+}));
 
 export const appointmentsRelations = relations(appointments, ({ one }) => ({
+  salon: one(salons, {
+    fields: [appointments.salonId],
+    references: [salons.id],
+  }),
   client: one(clients, {
     fields: [appointments.clientId],
     references: [clients.id],
@@ -179,6 +267,10 @@ export const appointmentsRelations = relations(appointments, ({ one }) => ({
 }));
 
 export const visitsRelations = relations(visits, ({ one, many }) => ({
+  salon: one(salons, {
+    fields: [visits.salonId],
+    references: [salons.id],
+  }),
   client: one(clients, {
     fields: [visits.clientId],
     references: [clients.id],
@@ -199,6 +291,8 @@ export const visitServicesRelations = relations(visitServices, ({ one }) => ({
 
 export type User = InferSelectModel<typeof users>;
 export type NewUser = InferInsertModel<typeof users>;
+export type Salon = InferSelectModel<typeof salons>;
+export type NewSalon = InferInsertModel<typeof salons>;
 export type Client = InferSelectModel<typeof clients>;
 export type NewClient = InferInsertModel<typeof clients>;
 export type Service = InferSelectModel<typeof services>;
