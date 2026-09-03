@@ -1,90 +1,127 @@
-import { asc, and, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
-import { db } from "../db";
-import { clients, visits } from "../db/schema";
+import { queryRows } from "../db";
+
+const clientColumns = `
+  id,
+  name,
+  phone,
+  notes,
+  cast(is_active as bit) as isActive,
+  created_at as createdAt,
+  updated_at as updatedAt,
+  [__v] as version
+`;
+
+const updateColumns: Record<string, string> = {
+  name: "name",
+  phone: "phone",
+  notes: "notes",
+  isActive: "is_active",
+};
+
+function buildUpdate(updates: Record<string, unknown>) {
+  const values: Record<string, unknown> = { updatedAt: new Date() };
+  const assignments = ["updated_at = @updatedAt"];
+
+  Object.entries(updates).forEach(([key, value], index) => {
+    const column = updateColumns[key];
+    if (!column) return;
+    const param = `value${index}`;
+    assignments.push(`${column} = @${param}`);
+    values[param] = value;
+  });
+
+  return { assignments: assignments.join(", "), values };
+}
 
 export const clientRepository = {
   create(values: { name: string; phone: string | null; notes: string; salonId: string }) {
-    return db.insert(clients).values(values).returning();
+    return queryRows(`
+      insert into dbo.clients (name, phone, notes, tenant_id)
+      output inserted.id, inserted.name, inserted.phone, inserted.notes, inserted.is_active as isActive,
+        inserted.created_at as createdAt, inserted.updated_at as updatedAt, inserted.[__v] as version
+      values (@name, @phone, @notes, @salonId)
+    `, values);
   },
 
   findActive(salonId: string) {
-    return db
-      .select()
-      .from(clients)
-      .where(and(eq(clients.salonId, salonId), eq(clients.isActive, true)))
-      .orderBy(asc(clients.name));
+    return queryRows(`
+      select ${clientColumns}
+      from dbo.clients
+      where tenant_id = @salonId and is_active = 1
+      order by name
+    `, { salonId });
   },
 
   findById(id: string, salonId: string) {
-    return db
-      .select()
-      .from(clients)
-      .where(and(eq(clients.id, id), eq(clients.salonId, salonId)))
-      .limit(1);
+    return queryRows(`
+      select ${clientColumns}
+      from dbo.clients
+      where id = @id and tenant_id = @salonId
+    `, { id, salonId });
   },
 
   findVisitSummariesForClientIds(ids: string[]) {
     if (ids.length === 0) return [];
 
-    return db
-      .select({
-        clientId: visits.clientId,
-        lastVisit: sql<Date | null>`max(${visits.visitDate})`,
-        totalSpent: sql<number>`cast(coalesce(sum(${visits.totalAmount}), 0) as double precision)`,
-      })
-      .from(visits)
-      .where(and(inArray(visits.clientId, ids), eq(visits.isDeleted, false)))
-      .groupBy(visits.clientId);
+    const values: Record<string, string> = {};
+    const params = ids.map((id, index) => {
+      const key = `id${index}`;
+      values[key] = id;
+      return `@${key}`;
+    });
+
+    return queryRows(`
+      select client_id as clientId, max(visit_date) as lastVisit, coalesce(sum(total_amount), 0) as totalSpent
+      from dbo.visits
+      where client_id in (${params.join(", ")}) and is_deleted = 0
+      group by client_id
+    `, values);
   },
 
   findActiveByPhone(phone: string, salonId: string) {
-    return db
-      .select()
-      .from(clients)
-      .where(and(eq(clients.salonId, salonId), eq(clients.phone, phone), eq(clients.isActive, true)))
-      .limit(1);
+    return queryRows(`
+      select ${clientColumns}
+      from dbo.clients
+      where tenant_id = @salonId and phone = @phone and is_active = 1
+    `, { phone, salonId });
   },
 
   findActiveByPhoneExceptId(phone: string, id: string, salonId: string) {
-    return db
-      .select()
-      .from(clients)
-      .where(and(
-        eq(clients.salonId, salonId),
-        eq(clients.phone, phone),
-        eq(clients.isActive, true),
-        ne(clients.id, id),
-      ))
-      .limit(1);
+    return queryRows(`
+      select ${clientColumns}
+      from dbo.clients
+      where tenant_id = @salonId and phone = @phone and is_active = 1 and id <> @id
+    `, { phone, id, salonId });
   },
 
   searchActive(query: string, salonId: string) {
-    const term = `%${query}%`;
-
-    return db
-      .select()
-      .from(clients)
-      .where(and(
-        eq(clients.salonId, salonId),
-        eq(clients.isActive, true),
-        or(ilike(clients.name, term), ilike(clients.phone, term)),
-      ))
-      .limit(10);
+    return queryRows(`
+      select top (10) ${clientColumns}
+      from dbo.clients
+      where tenant_id = @salonId
+        and is_active = 1
+        and (name like @term or phone like @term)
+    `, { term: `%${query}%`, salonId });
   },
 
   updateById(id: string, updates: Record<string, unknown>, salonId: string) {
-    return db
-      .update(clients)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(clients.id, id), eq(clients.salonId, salonId)))
-      .returning();
+    const built = buildUpdate(updates);
+    return queryRows(`
+      update dbo.clients
+      set ${built.assignments}
+      output inserted.id, inserted.name, inserted.phone, inserted.notes, inserted.is_active as isActive,
+        inserted.created_at as createdAt, inserted.updated_at as updatedAt, inserted.[__v] as version
+      where id = @id and tenant_id = @salonId
+    `, { ...built.values, id, salonId });
   },
 
   deactivateById(id: string, salonId: string) {
-    return db
-      .update(clients)
-      .set({ isActive: false, updatedAt: new Date() })
-      .where(and(eq(clients.id, id), eq(clients.salonId, salonId)))
-      .returning();
+    return queryRows(`
+      update dbo.clients
+      set is_active = 0, updated_at = @updatedAt
+      output inserted.id, inserted.name, inserted.phone, inserted.notes, inserted.is_active as isActive,
+        inserted.created_at as createdAt, inserted.updated_at as updatedAt, inserted.[__v] as version
+      where id = @id and tenant_id = @salonId
+    `, { id, salonId, updatedAt: new Date() });
   },
 };

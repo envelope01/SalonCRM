@@ -1,44 +1,53 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
-import { db } from "../db";
-import { salons, users } from "../db/schema";
+import { queryRows } from "../db";
+
+const authColumns = `
+  u.id,
+  u.email,
+  u.name,
+  u.password_hash as passwordHash,
+  cast(u.must_change_password as bit) as mustChangePassword,
+  u.role,
+  u.tenant_id as salonId,
+  t.name as salonName,
+  u.created_at as createdAt,
+  u.updated_at as updatedAt,
+  u.[__v] as version
+`;
+
+const publicColumns = `
+  u.id,
+  u.email,
+  u.name,
+  u.role,
+  u.tenant_id as salonId,
+  u.created_at as createdAt,
+  cast(u.must_change_password as bit) as mustChangePassword
+`;
 
 export const userRepository = {
   findByEmail(email: string) {
-    return db
-      .select({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        passwordHash: users.passwordHash,
-        mustChangePassword: users.mustChangePassword,
-        role: users.role,
-        salonId: users.salonId,
-        salonName: salons.name,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        version: users.version,
-      })
-      .from(users)
-      .leftJoin(salons, eq(users.salonId, salons.id))
-      .where(eq(users.email, email))
-      .limit(1);
+    return queryRows(`
+      select ${authColumns}
+      from dbo.users u
+      left join dbo.tenants t on t.id = u.tenant_id
+      where u.email = @email
+    `, { email });
   },
 
   findAuthUserById(id: string) {
-    return db
-      .select({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        role: users.role,
-        salonId: users.salonId,
-        salonName: salons.name,
-        mustChangePassword: users.mustChangePassword,
-      })
-      .from(users)
-      .leftJoin(salons, eq(users.salonId, salons.id))
-      .where(eq(users.id, id))
-      .limit(1);
+    return queryRows(`
+      select
+        u.id,
+        u.email,
+        u.name,
+        u.role,
+        u.tenant_id as salonId,
+        t.name as salonName,
+        cast(u.must_change_password as bit) as mustChangePassword
+      from dbo.users u
+      left join dbo.tenants t on t.id = u.tenant_id
+      where u.id = @id
+    `, { id });
   },
 
   create(values: {
@@ -49,66 +58,57 @@ export const userRepository = {
     role: "owner" | "staff" | "admin" | "dev";
     salonId?: string | null;
   }) {
-    return db.insert(users).values(values).returning();
+    return queryRows(`
+      insert into dbo.users (email, name, password_hash, role, tenant_id, must_change_password)
+      output inserted.id, inserted.email, inserted.name, inserted.role, inserted.tenant_id as salonId,
+        inserted.created_at as createdAt, inserted.must_change_password as mustChangePassword
+      values (@email, @name, @passwordHash, @role, @salonId, @mustChangePassword)
+    `, {
+      ...values,
+      salonId: values.salonId ?? null,
+      mustChangePassword: values.mustChangePassword ?? false,
+    });
   },
 
   updatePassword(id: string, values: { passwordHash: string; mustChangePassword?: boolean }) {
-    return db
-      .update(users)
-      .set({
-        passwordHash: values.passwordHash,
-        mustChangePassword: values.mustChangePassword ?? false,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, id))
-      .returning();
+    return queryRows(`
+      update dbo.users
+      set password_hash = @passwordHash, must_change_password = @mustChangePassword, updated_at = @updatedAt
+      output inserted.id, inserted.email, inserted.name, inserted.role, inserted.tenant_id as salonId,
+        inserted.created_at as createdAt, inserted.must_change_password as mustChangePassword
+      where id = @id
+    `, {
+      id,
+      passwordHash: values.passwordHash,
+      mustChangePassword: values.mustChangePassword ?? false,
+      updatedAt: new Date(),
+    });
   },
 
   findSalonOwner(salonId: string) {
-    return db
-      .select({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        role: users.role,
-        salonId: users.salonId,
-        createdAt: users.createdAt,
-      })
-      .from(users)
-      .where(and(eq(users.salonId, salonId), eq(users.role, "owner")))
-      .orderBy(asc(users.createdAt))
-      .limit(1);
+    return queryRows(`
+      select top (1) ${publicColumns}
+      from dbo.users u
+      where u.tenant_id = @salonId and u.role = N'owner'
+      order by u.created_at
+    `, { salonId });
   },
 
   findPlatformUsers() {
-    return db
-      .select({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        role: users.role,
-        salonId: users.salonId,
-        createdAt: users.createdAt,
-        mustChangePassword: users.mustChangePassword,
-      })
-      .from(users)
-      .where(inArray(users.role, ["admin", "dev"]))
-      .orderBy(asc(users.name));
+    return queryRows(`
+      select ${publicColumns}
+      from dbo.users u
+      where u.role in (N'admin', N'dev')
+      order by u.name
+    `);
   },
 
   findTenantStaff(salonId: string) {
-    return db
-      .select({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        role: users.role,
-        salonId: users.salonId,
-        createdAt: users.createdAt,
-        mustChangePassword: users.mustChangePassword,
-      })
-      .from(users)
-      .where(and(eq(users.salonId, salonId), inArray(users.role, ["owner", "staff"])))
-      .orderBy(asc(users.role), asc(users.name));
+    return queryRows(`
+      select ${publicColumns}
+      from dbo.users u
+      where u.tenant_id = @salonId and u.role in (N'owner', N'staff')
+      order by u.role, u.name
+    `, { salonId });
   },
 };

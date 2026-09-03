@@ -1,10 +1,21 @@
-import { and, eq, sql } from "drizzle-orm";
-import { db } from "../db";
-import { appSettings } from "../db/schema";
+import { queryRows, transaction, txRows } from "../db";
+
+const settingColumns = `
+  id,
+  [key],
+  value,
+  created_at as createdAt,
+  updated_at as updatedAt,
+  [__v] as version
+`;
 
 export const settingsRepository = {
   findAll(salonId: string) {
-    return db.select().from(appSettings).where(eq(appSettings.salonId, salonId));
+    return queryRows(`
+      select ${settingColumns}
+      from dbo.app_settings
+      where tenant_id = @salonId
+    `, { salonId });
   },
 
   async upsertMany(values: Record<string, string>, salonId: string) {
@@ -14,22 +25,21 @@ export const settingsRepository = {
       return [];
     }
 
-    return db.transaction(async (tx) => {
+    return transaction(async (tx) => {
       const rows = [];
 
       for (const [key, value] of entries) {
-        const [row] = await tx
-          .insert(appSettings)
-          .values({ key, value, salonId })
-          .onConflictDoUpdate({
-            target: [appSettings.salonId, appSettings.key],
-            set: {
-              value,
-              updatedAt: sql`now()`,
-              version: sql`${appSettings.version} + 1`,
-            },
-          })
-          .returning();
+        const [row] = await txRows(tx, `
+          merge dbo.app_settings as target
+          using (select @salonId as tenant_id, @key as [key], @value as value) as source
+          on target.tenant_id = source.tenant_id and target.[key] = source.[key]
+          when matched then
+            update set value = source.value, updated_at = sysdatetimeoffset(), [__v] = target.[__v] + 1
+          when not matched then
+            insert ([key], value, tenant_id) values (source.[key], source.value, source.tenant_id)
+          output inserted.id, inserted.[key], inserted.value, inserted.created_at as createdAt,
+            inserted.updated_at as updatedAt, inserted.[__v] as version;
+        `, { key, value, salonId });
 
         rows.push(row);
       }
@@ -39,6 +49,11 @@ export const settingsRepository = {
   },
 
   deleteByKey(key: string, salonId: string) {
-    return db.delete(appSettings).where(and(eq(appSettings.key, key), eq(appSettings.salonId, salonId))).returning();
+    return queryRows(`
+      delete from dbo.app_settings
+      output deleted.id, deleted.[key], deleted.value, deleted.created_at as createdAt,
+        deleted.updated_at as updatedAt, deleted.[__v] as version
+      where [key] = @key and tenant_id = @salonId
+    `, { key, salonId });
   },
 };

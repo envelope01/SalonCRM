@@ -187,7 +187,7 @@ function ServicesPage() {
               onClick={() => setActiveCategory(cat)}
               className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
                 activeCategory === cat
-                  ? "bg-primary text-white shadow-sm shadow-brandPink/20"
+                  ? "bg-brandPink text-white shadow-sm shadow-brandPink/30"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
@@ -286,7 +286,7 @@ function ServicesPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-              <h2 className="mb-5 text-lg font-semibold text-gray-950">
+              <h2 className="mb-5 text-xl font-black text-gray-900">
                 {editingId ? "Edit Service" : "New Service"}
               </h2>
 

@@ -201,7 +201,7 @@ function ReportsPage() {
               key={p}
               onClick={() => (p === "custom" ? setPeriod("custom") : applyPreset(p))}
               className={`flex-1 rounded-lg py-2 text-[11px] font-semibold capitalize transition-all ${
-                period === p ? "bg-white text-gray-950 shadow-sm" : "text-gray-500"
+                period === p ? "bg-white text-brandPink shadow-sm" : "text-gray-500"
               }`}
             >
               {p}
@@ -226,7 +226,7 @@ function ReportsPage() {
             <button
               type="button"
               onClick={applyCustomRange}
-              className="rounded-xl bg-primary px-4 py-3 text-xs font-semibold text-white shadow-lg shadow-brandPink/20 transition-transform active:scale-95"
+              className="rounded-2xl bg-primary px-4 py-3 text-xs font-bold text-white shadow-lg shadow-primary/20 transition-transform active:scale-95"
             >
               Go
             </button>
@@ -357,7 +357,7 @@ function ReportsPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-              <h2 className="mb-5 text-lg font-semibold text-gray-950">Add Expense</h2>
+              <h2 className="mb-5 text-xl font-black text-gray-900">Add Expense</h2>
               
               <div className="space-y-5">
                 <div className="relative">

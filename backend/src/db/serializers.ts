@@ -1,4 +1,67 @@
-import type { Appointment, Client, Expense, Salon, Service, User, Visit, VisitService } from "./schema";
+type BaseRow = {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  version: number;
+};
+
+type Client = BaseRow & {
+  name: string;
+  phone: string | null;
+  notes: string;
+  isActive: boolean;
+};
+
+type Service = BaseRow & {
+  name: string;
+  category: string;
+  price: number;
+  isActive: boolean;
+};
+
+type Expense = BaseRow & {
+  date: Date;
+  category: string;
+  amount: number;
+  notes: string;
+};
+
+type Appointment = BaseRow & {
+  clientId: string;
+  title: string;
+  appointmentStart: Date;
+  appointmentEnd: Date;
+  status: string;
+  notes: string;
+};
+
+type Visit = BaseRow & {
+  clientId: string;
+  visitDate: Date;
+  totalAmount: number;
+  notes: string;
+  isDeleted: boolean;
+};
+
+type VisitService = BaseRow & {
+  serviceId: string | null;
+  name: string;
+  basePrice: number;
+  chargedPrice: number;
+  lineTotal: number;
+};
+
+type Salon = BaseRow & {
+  name: string;
+  isActive: boolean;
+};
+
+type User = BaseRow & {
+  email: string;
+  name: string;
+  role: string;
+  salonId: string | null;
+};
 
 const version = (row: { version?: number | null }) => row.version ?? 0;
 

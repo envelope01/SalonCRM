@@ -17,13 +17,13 @@ const MainHeader = ({ title, children }) => {
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-gray-100 bg-white/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h1 className="truncate text-xl font-semibold tracking-tight text-gray-950">{title}</h1>
+    <header className="sticky top-0 z-20 bg-white px-5 pb-4 pt-8 shadow-sm">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h1 className="truncate text-2xl font-bold text-gray-900">{title}</h1>
         <button
           type="button"
           onClick={handleLogout}
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition-transform active:scale-95"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 shadow-sm transition-transform active:scale-95"
           aria-label="Logout"
         >
           <LogoutIcon />

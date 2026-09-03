@@ -43,32 +43,37 @@ function LoginPage({ setUser }) {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-start justify-center bg-[radial-gradient(circle_at_top,#fff7fb_0,#f9fafb_42%,#f3f4f6_100%)] px-5 py-10 sm:items-center">
-      <div className="w-full max-w-md">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-primary via-accent to-brandPink p-5">
+      <div className="pointer-events-none absolute left-[-10%] top-[-10%] h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] h-80 w-80 rounded-full bg-brandPink/40 blur-3xl" />
+      <div className="relative z-10 w-full max-w-md">
         <motion.div
-          initial={{ opacity: 0, y: -14 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="mb-5 text-center"
+          transition={{ duration: 0.5 }}
+          className="mb-8 text-center text-white"
         >
-          <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1.5rem] border border-white/30 bg-white shadow-2xl">
             <img src="/logo.png" alt="SalonCRM" className="h-full w-full object-cover" />
           </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-gray-950">SalonCRM</h1>
+          <h1 className="text-5xl font-black tracking-tight drop-shadow-lg">SalonCRM</h1>
+          <p className="mt-2 text-sm font-bold uppercase tracking-[0.3em] opacity-90 drop-shadow">
+            Beauty Lounge
+          </p>
         </motion.div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 40 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 25 }}
-        className="w-full rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-7"
-      >
-        <div className="mb-6 text-center">
-          <h2 className="text-xl font-semibold text-gray-950">Sign in</h2>
-          <p className="mt-1 text-sm font-medium text-gray-500">Access your workspace securely.</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 25 }}
+          className="w-full rounded-[2.5rem] bg-white p-8 shadow-2xl"
+        >
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-black text-gray-900">Welcome Back</h2>
+            <p className="mt-1 text-sm font-medium text-gray-400">Sign in to your workspace</p>
+          </div>
 
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-5">
           <div>
             <input
               type="email"
@@ -112,13 +117,13 @@ function LoginPage({ setUser }) {
           </button>
         </form>
 
-        <div className="mt-7 text-center">
-          <p className="mb-3 text-xs font-medium leading-relaxed text-gray-500">
+        <div className="mt-8 text-center">
+          <p className="mb-3 text-xs font-bold leading-relaxed text-gray-400">
             Forgot password? Ask your salon owner or platform admin for a new temporary password.
           </p>
-          <p className="text-xs font-medium text-gray-400">Professional salon management</p>
+          <p className="text-xs font-bold text-gray-400">Salon CRM System v1.0</p>
         </div>
-      </motion.div>
+        </motion.div>
       </div>
     </div>
   );

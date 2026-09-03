@@ -1,64 +1,44 @@
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
-import { db } from "../db";
-import { expenses, visits } from "../db/schema";
+import { queryRows } from "../db";
 
 export const reportRepository = {
   async getSummaryRows(salonId: string, startDate: Date, endDate: Date) {
-    const visitDateFilter = and(
-      eq(visits.salonId, salonId),
-      gte(visits.visitDate, startDate),
-      lte(visits.visitDate, endDate),
-    );
-    const expenseDateFilter = and(
-      eq(expenses.salonId, salonId),
-      gte(expenses.date, startDate),
-      lte(expenses.date, endDate),
-    );
+    const values = { salonId, startDate, endDate };
 
-    const [earningsTotals] = await db
-      .select({
-        totalEarnings: sql`cast(coalesce(sum(${visits.totalAmount}), 0) as double precision)`,
-        totalVisits: sql`cast(count(*) as integer)`,
-      })
-      .from(visits)
-      .where(visitDateFilter);
+    const [earningsTotals] = await queryRows(`
+      select coalesce(sum(total_amount), 0) as totalEarnings, count(*) as totalVisits
+      from dbo.visits
+      where tenant_id = @salonId and visit_date >= @startDate and visit_date <= @endDate
+    `, values);
 
-    const [expenseTotals] = await db
-      .select({
-        totalExpenses: sql`cast(coalesce(sum(${expenses.amount}), 0) as double precision)`,
-      })
-      .from(expenses)
-      .where(expenseDateFilter);
+    const [expenseTotals] = await queryRows(`
+      select coalesce(sum(amount), 0) as totalExpenses
+      from dbo.expenses
+      where tenant_id = @salonId and [date] >= @startDate and [date] <= @endDate
+    `, values);
 
-    const earningsByDay = await db
-      .select({
-        _id: sql`to_char(date_trunc('day', ${visits.visitDate}), 'YYYY-MM-DD')`,
-        earnings: sql`cast(coalesce(sum(${visits.totalAmount}), 0) as double precision)`,
-      })
-      .from(visits)
-      .where(visitDateFilter)
-      .groupBy(sql`date_trunc('day', ${visits.visitDate})`)
-      .orderBy(sql`date_trunc('day', ${visits.visitDate})`);
+    const earningsByDay = await queryRows(`
+      select convert(varchar(10), cast(visit_date as date), 23) as _id, coalesce(sum(total_amount), 0) as earnings
+      from dbo.visits
+      where tenant_id = @salonId and visit_date >= @startDate and visit_date <= @endDate
+      group by cast(visit_date as date)
+      order by cast(visit_date as date)
+    `, values);
 
-    const expensesByDay = await db
-      .select({
-        _id: sql`to_char(date_trunc('day', ${expenses.date}), 'YYYY-MM-DD')`,
-        expenses: sql`cast(coalesce(sum(${expenses.amount}), 0) as double precision)`,
-      })
-      .from(expenses)
-      .where(expenseDateFilter)
-      .groupBy(sql`date_trunc('day', ${expenses.date})`)
-      .orderBy(sql`date_trunc('day', ${expenses.date})`);
+    const expensesByDay = await queryRows(`
+      select convert(varchar(10), cast([date] as date), 23) as _id, coalesce(sum(amount), 0) as expenses
+      from dbo.expenses
+      where tenant_id = @salonId and [date] >= @startDate and [date] <= @endDate
+      group by cast([date] as date)
+      order by cast([date] as date)
+    `, values);
 
-    const expensesByCategory = await db
-      .select({
-        _id: expenses.category,
-        total: sql`cast(coalesce(sum(${expenses.amount}), 0) as double precision)`,
-      })
-      .from(expenses)
-      .where(expenseDateFilter)
-      .groupBy(expenses.category)
-      .orderBy(desc(sql`cast(coalesce(sum(${expenses.amount}), 0) as double precision)`));
+    const expensesByCategory = await queryRows(`
+      select category as _id, coalesce(sum(amount), 0) as total
+      from dbo.expenses
+      where tenant_id = @salonId and [date] >= @startDate and [date] <= @endDate
+      group by category
+      order by coalesce(sum(amount), 0) desc
+    `, values);
 
     return {
       earningsTotals,

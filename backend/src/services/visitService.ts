@@ -66,8 +66,8 @@ export const visitService = {
     const rows = await visitRepository.findByClientId(requireUuid(clientId, "clientId"), requireSalonId(user));
     if (rows.length === 0) return [];
 
-    const lineItems = await visitRepository.findLineItemsForVisitIds(rows.map((visit) => visit.id));
-    const servicesByVisitId = lineItems.reduce<Record<string, typeof lineItems>>((acc, lineItem) => {
+    const lineItems: any[] = await visitRepository.findLineItemsForVisitIds(rows.map((visit) => visit.id));
+    const servicesByVisitId = lineItems.reduce<Record<string, any[]>>((acc, lineItem) => {
       if (!acc[lineItem.visitId]) acc[lineItem.visitId] = [];
       acc[lineItem.visitId].push(lineItem);
       return acc;

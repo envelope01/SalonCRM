@@ -53,12 +53,14 @@ function ChangePasswordPage({ user, setUser }) {
   };
 
   return (
-    <div className="flex min-h-screen items-start justify-center bg-gray-50 px-5 py-10 sm:items-center">
-      <div className="w-full max-w-md rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-brandPink">Account security</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">Create your new password</h1>
-          <p className="mt-2 text-sm font-medium leading-relaxed text-gray-500">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-primary via-accent to-brandPink px-5 py-10">
+      <div className="pointer-events-none absolute left-[-10%] top-[-10%] h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] h-80 w-80 rounded-full bg-brandPink/40 blur-3xl" />
+      <div className="relative z-10 w-full max-w-md rounded-[2.5rem] bg-white p-8 shadow-2xl">
+        <div className="mb-8">
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-brandPink">Account security</p>
+          <h1 className="mt-2 text-2xl font-black tracking-tight text-gray-900">Create your new password</h1>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-gray-500">
             Your current password is temporary. Set a private password before continuing.
           </p>
         </div>

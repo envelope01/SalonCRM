@@ -53,14 +53,6 @@ if (missing.length > 0) {
   throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
 }
 
-const isLocalDatabase = /localhost|127\.0\.0\.1/i.test(process.env.DATABASE_URL || "");
-
-if (nodeEnv === "development" && !isLocalDatabase) {
-  throw new Error(
-    "Development mode must use local PostgreSQL. Set backend/.env.development DATABASE_URL to postgres://postgres:root@localhost:5432/salon_db and clear any shell DATABASE_URL override.",
-  );
-}
-
 export const env = {
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,

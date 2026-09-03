@@ -5,13 +5,13 @@ const TopHeader = ({ title, showBack = false, rightElement = null }) => {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-100 bg-white/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-100 bg-white/80 px-5 pb-4 pt-2 shadow-sm backdrop-blur-xl transition-all">
+      <div className="flex min-w-0 items-center gap-4">
         {showBack && (
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 transition-transform active:scale-95"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm transition-transform active:scale-90"
             aria-label="Go back"
           >
             <svg
@@ -29,7 +29,7 @@ const TopHeader = ({ title, showBack = false, rightElement = null }) => {
             </svg>
           </button>
         )}
-        <h1 className="truncate text-xl font-semibold tracking-tight text-gray-950">{title}</h1>
+        <h1 className="truncate text-2xl font-black tracking-tight text-gray-900">{title}</h1>
       </div>
 
       {rightElement && (

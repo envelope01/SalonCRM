@@ -105,11 +105,11 @@ function limitText(value, fallback = "No owner email") {
 
 function StatCard({ label, value, icon, accent }) {
   return (
-    <div className="min-h-[92px] rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="min-h-[96px] rounded-[2rem] border border-gray-100 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase leading-tight text-gray-400">{label}</p>
-          <p className="mt-2 truncate text-2xl font-semibold text-gray-950">{value}</p>
+          <p className="text-[10px] font-bold uppercase leading-tight text-gray-400">{label}</p>
+          <p className="mt-2 truncate text-2xl font-black text-gray-900">{value}</p>
         </div>
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${accent}`}>
           {icon}
@@ -126,18 +126,18 @@ function Modal({ title, onClose, children, maxWidth = "sm:max-w-2xl" }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-gray-950/40 flex items-end sm:items-center justify-center p-0 sm:p-4"
+        className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
         onClick={onClose}
       >
         <motion.div
           initial={{ y: 24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 24, opacity: 0 }}
-          className={`w-full ${maxWidth} rounded-t-2xl border border-gray-100 bg-white shadow-xl sm:rounded-2xl`}
+          className={`w-full ${maxWidth} rounded-t-[2.5rem] border border-gray-100 bg-white p-0 shadow-2xl sm:rounded-[2rem]`}
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-950">{title}</h2>
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+            <h2 className="text-xl font-black text-gray-900">{title}</h2>
             <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-500" aria-label="Close">
               {icons.close}
             </button>
@@ -296,20 +296,20 @@ function AdminDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fff7fb_0,#f9fafb_42%,#f3f4f6_100%)] text-gray-950">
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-brandPink/10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="min-h-screen bg-gray-50 text-gray-950">
+      <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/90 shadow-sm backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-brandPink">Platform Control</p>
-            <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-brandPink">Platform Control</p>
+            <h1 className="text-2xl font-black tracking-tight text-gray-900">Admin Dashboard</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => setShowSalonModal(true)} className="inline-flex items-center gap-2 bg-primary text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg shadow-brandPink/20 active:scale-95 transition-transform">
+            <button type="button" onClick={() => setShowSalonModal(true)} className="btn-primary gap-2 px-5 py-3">
               {icons.plus}
               New Salon
             </button>
             {canManagePlatformUsers && (
-              <button type="button" onClick={() => setShowPlatformModal(true)} className="inline-flex items-center gap-2 bg-white text-primary border border-brandPink/20 px-4 py-3 rounded-xl text-sm font-bold active:scale-95 transition-transform">
+              <button type="button" onClick={() => setShowPlatformModal(true)} className="btn-secondary gap-2 bg-white">
                 {icons.shield}
                 Platform User
               </button>
@@ -322,7 +322,7 @@ function AdminDashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-5 space-y-6 pb-24">
-        <section className="grid grid-cols-2 xl:grid-cols-3 gap-3">
+        <section className="grid grid-cols-2 gap-3 xl:grid-cols-3">
           <StatCard label="Total salons" value={summary.totalSalons || 0} icon={icons.building} accent="bg-brandPink/10 text-brandPink" />
           <StatCard label="Active salons" value={summary.activeSalons || 0} icon={icons.activity} accent="bg-primary/10 text-primary" />
           <StatCard label="Inactive salons" value={summary.inactiveSalons || 0} icon={icons.users} accent="bg-rose-50 text-rose-600" />
@@ -334,7 +334,7 @@ function AdminDashboardPage() {
               <h2 className="text-sm font-semibold uppercase text-gray-500">Salons</h2>
               <span className="text-xs font-bold text-gray-400">{salons.length} records</span>
             </div>
-            <div className="overflow-x-auto border border-brandPink/10 bg-white rounded-2xl shadow-sm">
+            <div className="overflow-x-auto rounded-[2rem] border border-gray-100 bg-white shadow-sm">
               <table className="w-full min-w-[720px] text-sm">
                 <thead className="bg-gray-50 text-[10px] uppercase text-gray-400">
                   <tr>
@@ -352,7 +352,7 @@ function AdminDashboardPage() {
                   ) : salons.map((salon) => (
                     <tr key={salon._id} onClick={() => setSelectedSalon(salon)} className="cursor-pointer border-t border-gray-50 hover:bg-brandPink/5">
                       <td className="px-5 py-4">
-                        <div className="font-semibold text-gray-950">{salon.name}</div>
+                        <div className="font-bold text-gray-900">{salon.name}</div>
                         <div className="text-xs font-semibold text-gray-400 mt-1">
                           {limitText(salon.owner?.name, "Unassigned")} - {limitText(salon.owner?.email)}
                         </div>
@@ -378,7 +378,7 @@ function AdminDashboardPage() {
                               event.stopPropagation();
                               setSelectedSalon(salon);
                             }}
-                            className="rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700"
+                            className="rounded-2xl bg-gray-100 px-3 py-2 text-xs font-bold text-gray-600 transition-transform active:scale-95"
                           >
                             Manage
                           </button>
@@ -396,10 +396,10 @@ function AdminDashboardPage() {
           <h2 className="mb-3 text-sm font-semibold uppercase text-gray-500">Platform Users</h2>
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
             {platformUsers.map((user) => (
-              <div key={user.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+              <div key={user.id} className="rounded-[2rem] border border-gray-100 bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold">{user.name}</p>
+                    <p className="truncate font-bold text-gray-900">{user.name}</p>
                     <p className="text-xs text-gray-400 truncate">{user.email}</p>
                     <p className="text-xs text-gray-500 mt-2">Created {formatDate(user.createdAt)}</p>
                   </div>
@@ -415,7 +415,7 @@ function AdminDashboardPage() {
 
       {showSalonModal && (
         <Modal title="Add New Salon" onClose={() => setShowSalonModal(false)}>
-          <form onSubmit={registerSalon} className="p-5 grid sm:grid-cols-2 gap-3">
+          <form onSubmit={registerSalon} className="grid gap-3 p-6 sm:grid-cols-2">
             <input value={salonForm.name} onChange={(event) => updateSalonForm("name", event.target.value)} placeholder="Salon name" maxLength="160" className="input-soft" />
             <input value={salonForm.ownerName} onChange={(event) => updateSalonForm("ownerName", event.target.value)} placeholder="Owner name" maxLength="120" className="input-soft" />
             <input type="email" value={salonForm.ownerEmail} onChange={(event) => updateSalonForm("ownerEmail", event.target.value)} placeholder="Owner email" maxLength="254" className="input-soft" />
@@ -435,7 +435,7 @@ function AdminDashboardPage() {
 
       {showPlatformModal && (
         <Modal title="Add Platform User" onClose={() => setShowPlatformModal(false)}>
-          <form onSubmit={createPlatformUser} className="p-5 grid sm:grid-cols-2 gap-3">
+          <form onSubmit={createPlatformUser} className="grid gap-3 p-6 sm:grid-cols-2">
             <input value={platformUserForm.name} onChange={(event) => updatePlatformUserForm("name", event.target.value)} placeholder="Name" maxLength="120" className="input-soft" />
             <input type="email" value={platformUserForm.email} onChange={(event) => updatePlatformUserForm("email", event.target.value)} placeholder="Email" maxLength="254" className="input-soft" />
             <input type="password" value={platformUserForm.temporaryPassword} onChange={(event) => updatePlatformUserForm("temporaryPassword", event.target.value)} placeholder="Temporary password" maxLength="128" className="input-soft" />
@@ -454,15 +454,15 @@ function AdminDashboardPage() {
 
       {selectedSalon && (
         <AnimatePresence>
-          <motion.div className="fixed inset-0 z-50 bg-gray-950/40 flex justify-end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => {
+          <motion.div className="fixed inset-0 z-50 flex justify-end bg-black/40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => {
             setSelectedSalon(null);
             setOwnerTemporaryPassword("");
           }}>
-            <motion.aside initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 240 }} className="h-full w-full max-w-md overflow-y-auto bg-white shadow-xl" onClick={(event) => event.stopPropagation()}>
+            <motion.aside initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 240 }} className="h-full w-full max-w-md overflow-y-auto bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
               <div className="sticky top-0 flex items-center justify-between border-b border-gray-100 bg-white p-5">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase text-brandPink">Salon Detail</p>
-                  <h2 className="text-xl font-semibold">{selectedSalon.name}</h2>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-brandPink">Salon Detail</p>
+                  <h2 className="text-xl font-black text-gray-900">{selectedSalon.name}</h2>
                 </div>
                 <button type="button" onClick={() => {
                   setSelectedSalon(null);
@@ -477,13 +477,13 @@ function AdminDashboardPage() {
                   <StatCard label="Staff" value={selectedSalon.staffCount} icon={icons.shield} accent="bg-primary/10 text-primary" />
                 </div>
 
-                <div className="border border-gray-100 rounded-2xl p-4">
-                  <p className="text-[10px] font-semibold uppercase text-gray-400">Owner</p>
-                  <p className="mt-2 font-semibold">{limitText(selectedSalon.owner?.name, "Unassigned")}</p>
+                <div className="rounded-[2rem] border border-gray-100 p-5">
+                  <p className="text-[10px] font-bold uppercase text-gray-400">Owner</p>
+                  <p className="mt-2 font-bold text-gray-900">{limitText(selectedSalon.owner?.name, "Unassigned")}</p>
                   <p className="text-sm text-gray-500">{limitText(selectedSalon.owner?.email)}</p>
                 </div>
 
-                <div className="border border-gray-100 rounded-2xl p-4 space-y-3">
+                <div className="space-y-3 rounded-[2rem] border border-gray-100 p-5">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-gray-500">Status</span>
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${selectedSalon.isActive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>{selectedSalon.isActive ? "Active" : "Inactive"}</span>
@@ -500,7 +500,7 @@ function AdminDashboardPage() {
                   </button>
                 </div>
 
-                <div className="space-y-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                <div className="space-y-3 rounded-[2rem] border border-gray-100 bg-gray-50 p-5">
                   <div>
                     <p className="text-sm font-semibold text-gray-900">Reset owner password</p>
                     <p className="mt-1 text-xs font-semibold leading-relaxed text-gray-500">
@@ -519,7 +519,7 @@ function AdminDashboardPage() {
                     type="button"
                     disabled={saving || ownerTemporaryPassword.length < 6}
                     onClick={() => resetOwnerPassword(selectedSalon)}
-                    className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-transform active:scale-95 disabled:opacity-50"
+                    className="btn-primary w-full"
                   >
                     Reset Owner Password
                   </button>
