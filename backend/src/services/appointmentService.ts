@@ -7,6 +7,11 @@ import { requireSalonId } from "./tenantContext";
 const allowedStatuses = new Set(["scheduled", "completed", "cancelled"]);
 const maxAppointmentMinutes = 12 * 60;
 
+type AppointmentWithClientRow = {
+  appointment: any;
+  client: any;
+};
+
 function requireAppointmentDate(value: unknown, fieldName: string) {
   const date = optionalDate(value, fieldName);
   if (!date) throw badRequest(`${fieldName} is required`);
@@ -86,7 +91,7 @@ export const appointmentService = {
     const status = query.status ? validateStatus(query.status) : undefined;
     const rows = await appointmentRepository.findByDateRange(salonId, from, to, status);
 
-    return rows.map((row) => formatAppointment(row.appointment, row.client));
+    return (rows as AppointmentWithClientRow[]).map((row) => formatAppointment(row.appointment, row.client));
   },
 
   async updateAppointment(id: string, body: any, user?: any) {

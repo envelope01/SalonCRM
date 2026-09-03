@@ -4,6 +4,17 @@ import { optionalDate, optionalMoney, optionalText, requireUuid } from "../lib/v
 import { visitRepository } from "../repositories/visitRepository";
 import { requireSalonId } from "./tenantContext";
 
+type ServiceRow = {
+  id: string;
+  name: string;
+  price: number;
+  isActive: boolean;
+};
+
+type VisitRow = any & {
+  id: string;
+};
+
 export const visitService = {
   async createVisit(body: any, user?: any) {
     const salonId = requireSalonId(user);
@@ -20,7 +31,7 @@ export const visitService = {
 
     const serviceIds = services.map((service: any) => requireUuid(service.serviceId, "serviceId"));
     const uniqueServiceIds = Array.from(new Set(serviceIds));
-    const dbServices = await visitRepository.findServicesByIds(uniqueServiceIds, salonId);
+    const dbServices: ServiceRow[] = await visitRepository.findServicesByIds(uniqueServiceIds, salonId);
     const activeDbServices = dbServices.filter((service) => service.isActive);
 
     if (activeDbServices.length !== uniqueServiceIds.length) {
@@ -63,7 +74,7 @@ export const visitService = {
   },
 
   async getClientVisits(clientId: string, user?: any) {
-    const rows = await visitRepository.findByClientId(requireUuid(clientId, "clientId"), requireSalonId(user));
+    const rows: VisitRow[] = await visitRepository.findByClientId(requireUuid(clientId, "clientId"), requireSalonId(user));
     if (rows.length === 0) return [];
 
     const lineItems: any[] = await visitRepository.findLineItemsForVisitIds(rows.map((visit) => visit.id));

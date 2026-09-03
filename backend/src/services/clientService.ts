@@ -11,12 +11,18 @@ import { requireSalonId } from "./tenantContext";
 
 const allowedUpdateFields = ["name", "phone", "notes", "isActive"];
 
+type VisitSummary = {
+  clientId: string;
+  lastVisit: Date | null;
+  totalSpent: number | string | null;
+};
+
 async function addVisitSummaries(clients: any[]) {
-  const summaries = await clientRepository.findVisitSummariesForClientIds(
+  const summaries: VisitSummary[] = await clientRepository.findVisitSummariesForClientIds(
     clients.map((client) => client.id),
   );
   const summaryByClientId = new Map(
-    summaries.map((summary: any) => [summary.clientId, summary]),
+    summaries.map((summary) => [summary.clientId, summary]),
   );
 
   return clients.map((client) => ({
